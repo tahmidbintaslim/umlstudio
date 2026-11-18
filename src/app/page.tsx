@@ -95,7 +95,7 @@ export default function Landing() {
                 Start drawing, it&apos;s free <ArrowRight size={16} />
               </Link>
               <Link href="/app?ai=1" className="flex h-11 items-center gap-2 rounded-lg border border-line bg-bg px-6 font-medium hover:bg-muted">
-                <Sparkles size={16} className="text-fuchsia-500" /> Try the AI
+                <Sparkles size={16} className="text-accent" /> Try the AI
               </Link>
             </div>
             <p className="mt-3 text-sm text-fg/50">No sign-up needed to start. Sign in to use AI and save diagrams.</p>

@@ -223,7 +223,7 @@ export function EditorApp() {
           ))}
         </Menu>
         <button onClick={() => setAiOpen(true)}
-          className="flex h-8 items-center gap-1.5 rounded-md bg-gradient-to-r from-indigo-500 to-fuchsia-500 px-3 text-sm font-medium text-white shadow-sm hover:opacity-90">
+          className="flex h-8 items-center gap-1.5 rounded-md border border-accent/30 bg-accent/10 px-3 text-sm font-medium text-accent hover:bg-accent/20">
           <Sparkles size={14} /> <span className="hidden sm:inline">AI</span>
         </button>
         <Link href="/board" className="hidden h-8 items-center gap-1.5 rounded-md px-2 text-sm text-fg/80 hover:bg-muted hover:text-fg md:flex">
