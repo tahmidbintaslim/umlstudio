@@ -5,6 +5,8 @@
 **A fast, beautiful, open-source PlantUML editor.**
 Type on the left, see the diagram on the right — instantly.
 
+**[▶ Try it live](https://umlstudio.vercel.app)**
+
 [![MIT License](https://img.shields.io/badge/license-MIT-6366f1.svg)](LICENSE)
 [![Next.js 16](https://img.shields.io/badge/Next.js-16-black?logo=next.js)](https://nextjs.org)
 [![PRs welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
@@ -72,7 +74,9 @@ docker run -d -p 8080:8080 plantuml/plantuml-server:jetty
 
 ## Deploy
 
-Deploy to [Vercel](https://vercel.com/new) (or any Node host): import the repo, add the environment variables, done.
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Ftahmidbintaslim%2Fumlstudio&env=NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY,CLERK_SECRET_KEY&envDescription=Clerk%20keys%20from%20dashboard.clerk.com)
+
+Or any Node host: import the repo, add the environment variables, done.
 
 ## Tech stack
 
