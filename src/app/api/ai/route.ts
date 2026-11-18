@@ -2,9 +2,9 @@ import { auth } from "@clerk/nextjs/server";
 import { generateText } from "ai";
 import { sql, MAX_SOURCE } from "@/lib/db";
 
-// Haiku reads images well, is the cheapest Claude, and works on the AI Gateway free tier.
-// Set AI_MODEL (e.g. anthropic/claude-sonnet-5.5) after adding gateway credits for higher quality.
-const MODEL = process.env.AI_MODEL || "anthropic/claude-haiku-5.5";
+// gpt-5-mini: available on the AI Gateway free tier, reads images, and produced valid diagrams
+// in testing. Set AI_MODEL (e.g. anthropic/claude-sonnet-5.5) after adding gateway credits.
+const MODEL = process.env.AI_MODEL || "openai/gpt-5-mini";
 const DAILY_LIMIT = 25; // per user, rolling 24h — caps the AI bill
 const MAX_IMAGE = 5 * 1024 * 1024;
 const IMAGE_TYPES = ["image/png", "image/jpeg", "image/webp", "image/gif"];
