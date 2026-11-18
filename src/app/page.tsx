@@ -1,7 +1,5 @@
 import Link from "next/link";
 import Image from "next/image";
-import { Suspense } from "react";
-import { Show, UserButton } from "@clerk/nextjs";
 import {
   ArrowRight, Camera, Check, Code2, Download, FolderOpen, GraduationCap, Link2, Minus, MoonStar,
   Smartphone, Sparkles, Terminal, Users, Wand2, Workflow,
@@ -9,6 +7,7 @@ import {
 import { Logo } from "@/components/logo";
 import { GithubStar } from "@/components/github-star";
 import { LegacyHashRedirect } from "@/components/legacy-hash-redirect";
+import { NavAuth } from "@/components/nav-auth";
 
 const REPO = "https://github.com/tahmidbintaslim/umlstudio";
 
@@ -62,12 +61,7 @@ export default function Landing() {
           </div>
           <div className="ml-auto flex items-center gap-2">
             <GithubStar />
-            <Suspense>
-              <Show when="signed-out">
-                <Link href="/sign-in" className="hidden h-9 items-center rounded-md px-3 text-sm hover:bg-muted sm:flex">Sign in</Link>
-              </Show>
-              <Show when="signed-in"><UserButton /></Show>
-            </Suspense>
+            <NavAuth />
             <Link href="/app" className="flex h-9 items-center gap-1.5 rounded-md bg-accent px-4 text-sm font-medium text-white hover:bg-accent/90">
               Open editor <ArrowRight size={14} />
             </Link>

@@ -1,9 +1,9 @@
 import { SignIn } from "@clerk/nextjs";
-import { Suspense } from "react";
 import { AuthShell } from "@/components/auth-shell";
 
 export const metadata = { title: "Sign in · UML Studio" };
 
+// Hash routing: a plain static page, no catch-all route to partially prerender.
 export default function Page() {
-  return <AuthShell><Suspense><SignIn /></Suspense></AuthShell>;
+  return <AuthShell><SignIn routing="hash" /></AuthShell>;
 }

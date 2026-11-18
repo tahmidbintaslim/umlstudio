@@ -66,6 +66,7 @@ Open http://localhost:3000.
 |---|---|---|
 | `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` / `CLERK_SECRET_KEY` | yes | From the [Clerk dashboard](https://dashboard.clerk.com) |
 | `AI_GATEWAY_API_KEY` | local only | AI features use [Vercel AI Gateway](https://vercel.com/ai-gateway). On Vercel it authenticates automatically; locally create a key in the Vercel dashboard. |
+| `AI_MODEL` | no | Gateway model id, default `anthropic/claude-haiku-5.5` (free tier). Use `anthropic/claude-sonnet-5.5` with paid credits. |
 | `ADMIN_EMAILS` | no | Comma-separated emails allowed to open the `/admin` usage dashboard |
 | `DATABASE_URL` | no | Postgres for cloud save. Run [`schema.sql`](schema.sql) once. Without it, the editor, drafts and share links still work. |
 | `NEXT_PUBLIC_PLANTUML_SERVER` | no | Your own PlantUML server (default: public plantuml.com) |
