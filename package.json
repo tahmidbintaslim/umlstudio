@@ -13,9 +13,10 @@
   "dependencies": {
     "@clerk/nextjs": "^7.10.2",
     "@codemirror/language": "^6.13.1",
+    "@excalidraw/excalidraw": "^0.18.1",
+    "@excalidraw/mermaid-to-excalidraw": "^3.6.0",
     "@lezer/highlight": "^1.2.5",
     "@uiw/react-codemirror": "^4.25.12",
-    "@vercel/analytics": "^2.0.1",
     "ai": "^7.0.176",
     "lucide-react": "^1.74.0",
     "mermaid": "^12.3.0",

@@ -5,7 +5,7 @@ export const sql = process.env.DATABASE_URL
   ? postgres(process.env.DATABASE_URL, { ssl: "require", max: 5 })
   : null;
 
-export const MAX_SOURCE = 200_000; // bytes; plenty for any real diagram
+export const MAX_SOURCE = 2_000_000; // chars; fits whiteboards with a few images, under Vercel's 4.5 MB body limit
 
 // Shared request validation for create/update.
 export async function parse(req: Request) {

@@ -36,11 +36,12 @@ async function toDataUrl(file: File): Promise<string> {
   return c.toDataURL("image/jpeg", 0.85);
 }
 
-export function AiPanel({ signedIn, lang, source, onClose, onResult }: {
-  signedIn: boolean; lang: Lang; source: string; onClose: () => void; onResult: (code: string) => void;
+// whiteboard: create-only Mermaid output (the only language the canvas converter understands).
+export function AiPanel({ signedIn, lang, source, onClose, onResult, whiteboard = false }: {
+  signedIn: boolean; lang: Lang; source: string; onClose: () => void; onResult: (code: string) => void; whiteboard?: boolean;
 }) {
   const [mode, setMode] = useState<"create" | "edit">("create");
-  const [target, setTarget] = useState<Lang>(lang);
+  const [target, setTarget] = useState<Lang>(whiteboard ? "mermaid" : lang);
   const [prompt, setPrompt] = useState("");
   const [image, setImage] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -98,16 +99,16 @@ export function AiPanel({ signedIn, lang, source, onClose, onResult }: {
           </div>
         ) : (
           <div className="flex flex-1 flex-col gap-4 overflow-y-auto p-4">
-            <div role="tablist" className="grid grid-cols-2 rounded-lg border border-line p-0.5 text-sm">
+            {!whiteboard && <div role="tablist" className="grid grid-cols-2 rounded-lg border border-line p-0.5 text-sm">
               {(["create", "edit"] as const).map((m) => (
                 <button key={m} role="tab" aria-selected={mode === m} onClick={() => setMode(m)}
                   className={`rounded-md py-1.5 ${mode === m ? "bg-muted font-medium" : "text-fg/60 hover:text-fg"}`}>
                   {m === "create" ? "New diagram" : "Edit current"}
                 </button>
               ))}
-            </div>
+            </div>}
 
-            {mode === "create" && (
+            {mode === "create" && !whiteboard && (
               <label className="flex items-center justify-between text-sm">
                 <span className="text-fg/70">Output language</span>
                 <select value={target} onChange={(e) => setTarget(e.target.value as Lang)} className="rounded-md border border-line bg-bg px-2 py-1">
@@ -161,7 +162,7 @@ export function AiPanel({ signedIn, lang, source, onClose, onResult }: {
 
             <button onClick={submit} disabled={!canSubmit}
               className="mt-auto flex h-10 items-center justify-center gap-2 rounded-lg bg-accent text-sm font-medium text-white hover:bg-accent/90 disabled:opacity-50">
-              {busy ? <><Loader2 size={16} className="animate-spin" /> Drawing…</> : <><Sparkles size={16} /> {mode === "create" ? "Generate diagram" : "Apply changes"}</>}
+              {busy ? <><Loader2 size={16} className="animate-spin" /> Drawing…</> : <><Sparkles size={16} /> {whiteboard ? "Draw on whiteboard" : mode === "create" ? "Generate diagram" : "Apply changes"}</>}
             </button>
             <p className="text-center text-xs text-fg/40">Ctrl/⌘ + Enter · AI can make mistakes, so review the result</p>
           </div>

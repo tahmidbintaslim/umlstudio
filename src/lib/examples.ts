@@ -152,6 +152,122 @@ Project starts 2026-01-05
 }
 @endjson`,
   },
+  // ---- Cloud & architecture (PlantUML stdlib icons) ----
+  {
+    name: "AWS architecture",
+    source: `@startuml
+!include <awslib/AWSCommon>
+!include <awslib/AWSSimplified>
+!include <awslib/General/Users>
+!include <awslib/NetworkingContentDelivery/CloudFront>
+!include <awslib/ApplicationIntegration/APIGateway>
+!include <awslib/Compute/Lambda>
+!include <awslib/Database/DynamoDB>
+!include <awslib/Storage/SimpleStorageService>
+left to right direction
+
+Users(users, "Users", "")
+CloudFront(cdn, "CloudFront", "")
+SimpleStorageService(web, "Static site (S3)", "")
+APIGateway(api, "API Gateway", "")
+Lambda(fn, "Lambda", "")
+DynamoDB(db, "DynamoDB", "")
+
+users --> cdn
+cdn --> web
+cdn --> api
+api --> fn
+fn --> db
+@enduml`,
+  },
+  {
+    name: "Azure architecture",
+    source: `@startuml
+!include <azure/AzureCommon>
+!include <azure/AzureSimplified>
+!include <azure/Web/AzureWebApp>
+!include <azure/Compute/AzureFunction>
+!include <azure/Databases/AzureCosmosDb>
+!include <azure/Storage/AzureBlobStorage>
+left to right direction
+
+actor User
+AzureWebApp(web, "Web App", "")
+AzureFunction(fn, "Functions", "")
+AzureCosmosDb(db, "Cosmos DB", "")
+AzureBlobStorage(blob, "Blob Storage", "")
+
+User --> web
+web --> fn
+fn --> db
+fn --> blob
+@enduml`,
+  },
+  {
+    name: "GCP architecture",
+    source: `@startuml
+!include <gcp/GCPCommon>
+!include <gcp/Compute/Cloud_Run>
+!include <gcp/Databases/Cloud_SQL>
+!include <gcp/Storage/Cloud_Storage>
+!include <gcp/Data_Analytics/Cloud_PubSub>
+left to right direction
+
+actor User
+Cloud_Run(run, "Cloud Run", "API")
+Cloud_SQL(sql, "Cloud SQL", "Postgres")
+Cloud_Storage(gcs, "Cloud Storage", "Uploads")
+Cloud_PubSub(ps, "Pub/Sub", "Events")
+
+User --> run
+run --> sql
+run --> gcs
+run --> ps
+@enduml`,
+  },
+  {
+    name: "C4 container",
+    source: `@startuml
+!include <C4/C4_Container>
+LAYOUT_LEFT_RIGHT()
+
+Person(student, "Student", "Submits assignments")
+System_Boundary(lms, "Learning platform") {
+  Container(web, "Web app", "Next.js", "UI for students and teachers")
+  Container(api, "API", "Node.js", "Business logic")
+  ContainerDb(db, "Database", "Postgres", "Courses, submissions")
+}
+System_Ext(mail, "Email service", "Sends notifications")
+
+Rel(student, web, "Uses", "HTTPS")
+Rel(web, api, "Calls", "JSON/HTTPS")
+Rel(api, db, "Reads/writes", "SQL")
+Rel(api, mail, "Sends email", "SMTP")
+@enduml`,
+  },
+  {
+    name: "Kubernetes",
+    source: `@startuml
+!include <kubernetes/k8s-sprites-unlabeled-25pct>
+left to right direction
+
+actor User
+rectangle "Cluster" {
+  rectangle "<$ing>\\nIngress" as ing
+  rectangle "<$svc>\\nService" as svc
+  rectangle "<$deploy>\\nDeployment" as dep
+  rectangle "<$pod>\\nPod" as p1
+  rectangle "<$pod>\\nPod" as p2
+  rectangle "<$pv>\\nVolume" as pv
+}
+User --> ing
+ing --> svc
+svc --> dep
+dep --> p1
+dep --> p2
+p1 --> pv
+@enduml`,
+  },
   // ---- Mermaid ----
   {
     name: "Flowchart",

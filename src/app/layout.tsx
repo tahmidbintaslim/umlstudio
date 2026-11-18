@@ -3,7 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import { ThemeProvider } from "next-themes";
 import { Toaster } from "sonner";
-import { Analytics } from "@vercel/analytics/next";
+import { Track } from "@/components/track";
 import "./globals.css";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
@@ -31,7 +31,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             <Toaster position="bottom-center" richColors />
           </ThemeProvider>
         </ClerkProvider>
-        <Analytics />
+        <Track />
       </body>
     </html>
   );

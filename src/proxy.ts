@@ -1,7 +1,16 @@
-import { clerkMiddleware } from "@clerk/nextjs/server";
+import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
-// Editor is public; API routes check auth themselves.
-export default clerkMiddleware();
+const isAdminRoute = createRouteMatcher(["/admin(.*)", "/api/admin(.*)"]);
+
+// Public app; owner-only routes need the Clerk role publicMetadata.role = "admin"
+// (exposed on the session token via the session claim `metadata`).
+export default clerkMiddleware(async (auth, req) => {
+  if (!isAdminRoute(req)) return;
+  const { userId, sessionClaims } = await auth();
+  if (sessionClaims?.metadata?.role === "admin") return;
+  if (!userId && !req.nextUrl.pathname.startsWith("/api/")) return (await auth()).redirectToSignIn();
+  return new Response("Not found", { status: 404 });
+});
 
 export const config = {
   matcher: [

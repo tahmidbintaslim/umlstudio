@@ -1,8 +1,8 @@
 import Link from "next/link";
 import Image from "next/image";
 import {
-  ArrowRight, Camera, Check, Code2, Download, FolderOpen, GraduationCap, Link2, Minus, MoonStar,
-  Smartphone, Sparkles, Terminal, Users, Wand2, Workflow,
+  ArrowRight, Camera, Check, CloudCog, Code2, Download, FolderOpen, GraduationCap, Link2, Minus,
+  PenTool, Sparkles, Terminal, Users, Wand2, Workflow,
 } from "lucide-react";
 import { Logo } from "@/components/logo";
 import { GithubStar } from "@/components/github-star";
@@ -12,31 +12,34 @@ import { NavAuth } from "@/components/nav-auth";
 const REPO = "https://github.com/tahmidbintaslim/umlstudio";
 
 const WAYS = [
-  { icon: Code2, title: "Write code", body: "PlantUML or Mermaid with live preview, syntax highlighting and 16 templates. Diagrams live in text, so they diff, review and version like code." },
-  { icon: Sparkles, title: "Describe it", body: "“ER diagram for a food-delivery app with restaurants, orders and riders.” Get clean, editable diagram code in seconds." },
+  { icon: Code2, title: "Write code", body: "PlantUML or Mermaid with live preview and 22 templates. Diagrams live in text, so they diff, review and version like code." },
+  { icon: PenTool, title: "Sketch freely", body: "A hand-drawn style whiteboard for brainstorming and system design. Turn any Mermaid diagram into shapes you can drag around." },
+  { icon: Sparkles, title: "Describe it", body: "“ER diagram for a food-delivery app with restaurants, orders and riders.” Get a clean, editable diagram in seconds." },
   { icon: Camera, title: "Snap a photo", body: "Whiteboard after a lecture, a hand sketch, or a screenshot of an old diagram. AI redraws it as a crisp diagram you can edit." },
 ];
 
 const FEATURES = [
   { icon: Workflow, title: "25+ diagram types", body: "Sequence, class, activity, use case, state, component, ER, flowchart, mind map, Gantt, Git graph, timeline…" },
+  { icon: CloudCog, title: "Cloud architecture", body: "Official AWS, Azure, GCP and Kubernetes icons, plus C4 models for system design." },
   { icon: Wand2, title: "Fix with AI", body: "Syntax error? One click and AI repairs the code with minimal changes." },
   { icon: Download, title: "Export anywhere", body: "SVG, PNG, ASCII art and source files for reports, slides, READMEs and Notion." },
   { icon: Link2, title: "Share by link", body: "The whole diagram lives in the URL. No account needed to view." },
   { icon: FolderOpen, title: "Cloud library", body: "Sign in to save every diagram and pick up on any device." },
-  { icon: MoonStar, title: "Light & dark", body: "Easy on the eyes during late-night assignments and on-call incidents." },
-  { icon: Smartphone, title: "Works on mobile", body: "Review and tweak diagrams from your phone." },
+
   { icon: Terminal, title: "Open source, self-hostable", body: "MIT licensed. Run it with your own PlantUML server for private diagrams." },
 ];
 
-// Honest category comparison: per-product AI features change often, so no brand-by-brand checkmarks.
-const COMPARE: [string, string, string, string][] = [
-  ["Diagrams as code (diff, review, version)", "no", "yes", "yes"],
-  ["PlantUML and Mermaid in one editor", "no", "one only", "yes"],
-  ["AI: text → diagram", "often paid", "rare", "yes"],
-  ["AI: photo or screenshot → diagram", "rare", "no", "yes"],
-  ["AI fixes syntax errors", "no", "no", "yes"],
-  ["Free and open source", "some", "some", "yes"],
-  ["No install, works on mobile", "yes", "yes", "yes"],
+// Honest category comparison (whiteboards: Excalidraw, Miro, FigJam; drag-and-drop: draw.io, Lucidchart, Visio;
+// code: Mermaid Live, PlantText, Eraser). Per-product features change often, so no brand-by-brand checkmarks.
+const COMPARE: [string, string, string, string, string][] = [
+  ["Freehand whiteboard sketching", "yes", "some", "no", "yes"],
+  ["Diagrams as code (diff, review, version)", "no", "no", "yes", "yes"],
+  ["PlantUML and Mermaid in one place", "no", "import only", "one only", "yes"],
+  ["Code ⇄ editable canvas", "no", "no", "rare", "yes"],
+  ["AWS / Azure / GCP / C4 icons", "some", "yes", "some", "yes"],
+  ["AI: text → diagram", "often paid", "often paid", "often paid", "free"],
+  ["AI: photo or sketch → diagram", "rare", "rare", "rare", "free"],
+  ["Free and open source", "some", "some", "some", "yes"],
 ];
 
 const AUDIENCE = [
@@ -56,6 +59,7 @@ export default function Landing() {
           <Link href="/" aria-label="UML Studio home"><Logo /></Link>
           <div className="hidden items-center gap-5 text-sm text-fg/70 md:flex">
             <a href="#features" className="hover:text-fg">Features</a>
+            <Link href="/board" className="hover:text-fg">Whiteboard</Link>
             <a href="#compare" className="hover:text-fg">Compare</a>
             <a href={REPO} className="hover:text-fg">GitHub</a>
           </div>
@@ -105,9 +109,9 @@ export default function Landing() {
 
         {/* Three ways in */}
         <section className="mx-auto max-w-6xl px-4 py-20">
-          <h2 className="text-center text-3xl font-semibold tracking-tight">Three ways to a diagram</h2>
+          <h2 className="text-center text-3xl font-semibold tracking-tight">Four ways to a diagram</h2>
           <p className="mx-auto mt-3 max-w-xl text-center text-fg/60">Start however you think. Everything ends up as editable code.</p>
-          <div className="mt-10 grid gap-4 md:grid-cols-3">
+          <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {WAYS.map(({ icon: Icon, title, body }) => (
               <div key={title} className="rounded-2xl border border-line p-6">
                 <span className="grid size-10 place-items-center rounded-xl bg-accent/10 text-accent"><Icon size={20} /></span>
@@ -150,19 +154,20 @@ export default function Landing() {
 
         {/* Compare */}
         <section id="compare" className="border-y border-line bg-muted/40">
-          <div className="mx-auto max-w-4xl px-4 py-20">
+          <div className="mx-auto max-w-5xl px-4 py-20">
             <h2 className="text-center text-3xl font-semibold tracking-tight">One tool instead of five tabs</h2>
             <p className="mx-auto mt-3 max-w-2xl text-center text-fg/60">
-              Whiteboard apps are great for freeform sketching and code editors for one syntax.
-              UML Studio puts code, AI and export in one free place.
+              Whiteboards are great for sketching, drag-and-drop tools for polished charts, code editors for versioned docs.
+              UML Studio does all three, with AI, in one free and open-source place.
             </p>
             <div className="mt-10 overflow-x-auto rounded-2xl border border-line bg-bg">
-              <table className="w-full min-w-[560px] text-sm">
+              <table className="w-full min-w-[680px] text-sm">
                 <thead>
                   <tr className="border-b border-line text-left">
                     <th className="p-4 font-medium text-fg/60" scope="col"><span className="sr-only">Feature</span></th>
-                    <th className="p-4 font-medium text-fg/60" scope="col">Whiteboard apps</th>
-                    <th className="p-4 font-medium text-fg/60" scope="col">Diagram-as-code editors</th>
+                    <th className="p-4 font-medium text-fg/60" scope="col">Whiteboards</th>
+                    <th className="p-4 font-medium text-fg/60" scope="col">Drag-and-drop tools</th>
+                    <th className="p-4 font-medium text-fg/60" scope="col">Diagram-as-code</th>
                     <th className="p-4 font-semibold text-accent" scope="col">UML Studio</th>
                   </tr>
                 </thead>
@@ -172,7 +177,7 @@ export default function Landing() {
                       <th scope="row" className="p-4 text-left font-normal">{row}</th>
                       {cells.map((c, i) => (
                         <td key={i} className="p-4">
-                          {c === "yes" ? <Check size={18} className={i === 2 ? "text-accent" : "text-fg/50"} aria-label="Yes" />
+                          {c === "yes" ? <Check size={18} className={i === 3 ? "text-accent" : "text-fg/50"} aria-label="Yes" />
                             : c === "no" ? <Minus size={18} className="text-fg/30" aria-label="No" />
                             : <span className="text-fg/60">{c}</span>}
                         </td>

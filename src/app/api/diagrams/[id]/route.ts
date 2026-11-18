@@ -12,6 +12,13 @@ async function guard(ctx: RouteContext<"/api/diagrams/[id]">) {
   return { userId, id, sql };
 }
 
+export async function GET(_req: Request, ctx: RouteContext<"/api/diagrams/[id]">) {
+  const g = await guard(ctx);
+  if (g.err) return g.err;
+  const [row] = await g.sql`select id, title, source, updated_at from diagrams where id = ${g.id} and user_id = ${g.userId}`;
+  return row ? Response.json(row) : Response.json({ error: "Not found" }, { status: 404 });
+}
+
 export async function PUT(req: Request, ctx: RouteContext<"/api/diagrams/[id]">) {
   const g = await guard(ctx);
   if (g.err) return g.err;

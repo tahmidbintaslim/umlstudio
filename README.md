@@ -24,9 +24,11 @@ Write code, describe it in plain English, or snap a whiteboard photo, and get a 
 Students and developers juggle draw.io, Excalidraw, Miro, Mermaid Live and PlantText, and each covers only part of the job.
 UML Studio puts **diagrams-as-code, AI and export in one free, open-source place.**
 
-- **Three ways in.** Write PlantUML or Mermaid, **describe** the diagram in plain English, or **upload a photo** of a whiteboard, hand sketch or screenshot. AI turns it into clean, editable code.
+- **Four ways in.** Write PlantUML or Mermaid, **sketch** on a hand-drawn style whiteboard, **describe** the diagram in plain English, or **upload a photo** of a whiteboard, hand sketch or screenshot. AI turns it into a clean, editable diagram.
+- **Code ⇄ canvas.** Convert any Mermaid diagram into editable whiteboard shapes (powered by [Excalidraw](https://github.com/excalidraw/excalidraw)), and let AI draw straight onto the board.
+- **Cloud architecture.** Official AWS, Azure, GCP and Kubernetes icons, plus C4 models.
 - **Fix with AI.** Syntax error? One click repairs it.
-- **Two languages, one editor.** PlantUML *and* Mermaid, detected automatically, with 16 templates.
+- **Two languages, one editor.** PlantUML *and* Mermaid, detected automatically, with 22 templates.
 - **Live preview** as you type, resizable split view, zoom and fit, dark mode, mobile layout.
 - **Export** SVG, PNG, ASCII art, `.puml` / `.mmd`.
 - **Share links** that hold the whole diagram in the URL, with nothing stored server-side.
@@ -41,7 +43,9 @@ Ideas and votes welcome in [issues](https://github.com/tahmidbintaslim/umlstudio
 - [x] PlantUML + Mermaid editor with live preview
 - [x] AI: text → diagram, image → diagram, fix errors, edit by instruction
 - [x] Cloud save, share links, exports
-- [ ] Freehand canvas (sketch, then convert to code with AI)
+- [x] Whiteboard with code → canvas conversion and AI drawing
+- [x] AWS / Azure / GCP / Kubernetes / C4 templates
+- [ ] Canvas → code (export a sketch back to Mermaid with AI)
 - [ ] More languages: D2, Graphviz/DOT, C4, BPMN
 - [ ] Explain-this-diagram and diagram-from-codebase (paste SQL schema / OpenAPI / code)
 - [ ] Real-time collaboration and comments
@@ -67,7 +71,6 @@ Open http://localhost:3000.
 | `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` / `CLERK_SECRET_KEY` | yes | From the [Clerk dashboard](https://dashboard.clerk.com) |
 | `AI_GATEWAY_API_KEY` | local only | AI features use [Vercel AI Gateway](https://vercel.com/ai-gateway). On Vercel it authenticates automatically; locally create a key in the Vercel dashboard. |
 | `AI_MODEL` | no | Gateway model id. Default `openai/gpt-5-mini` works on the free tier; with paid credits try `anthropic/claude-sonnet-5.5`. |
-| `ADMIN_EMAILS` | no | Comma-separated emails allowed to open the `/admin` usage dashboard |
 | `DATABASE_URL` | no | Postgres for cloud save. Run [`schema.sql`](schema.sql) once. Without it, the editor, drafts and share links still work. |
 | `NEXT_PUBLIC_PLANTUML_SERVER` | no | Your own PlantUML server (default: public plantuml.com) |
 | `NEXT_PUBLIC_GITHUB_REPO` | no | `owner/repo` for the star button |
@@ -79,6 +82,14 @@ docker run -d -p 8080:8080 plantuml/plantuml-server:jetty
 # then: NEXT_PUBLIC_PLANTUML_SERVER=http://localhost:8080
 ```
 
+### Analytics and the admin dashboard
+
+Analytics are free and first-party: each page view is stored in your own Postgres (`page_views` table) with a daily-rotating, cookieless visitor hash, with no third-party script and no IPs stored. Set `ANALYTICS_SALT` to any random string.
+
+`/admin` shows visitors, page views, top pages, referrers, countries, sign-ups, saved diagrams and AI usage. Access is controlled by Clerk:
+1. In Clerk → **Sessions → Customize session token**, add `{"metadata": "{{user.public_metadata}}"}`.
+2. In Clerk → **Users**, open your user and set public metadata to `{"role": "admin"}`.
+
 ## Deploy
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Ftahmidbintaslim%2Fumlstudio&env=NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY,CLERK_SECRET_KEY&envDescription=Clerk%20keys%20from%20dashboard.clerk.com)
@@ -87,7 +98,7 @@ Or any Node host: import the repo, add the environment variables, done.
 
 ## Tech stack
 
-[Next.js 16](https://nextjs.org) (App Router) · [AI SDK](https://ai-sdk.dev) + Vercel AI Gateway · [Mermaid](https://mermaid.js.org) · [React 19](https://react.dev) · [Tailwind CSS 4](https://tailwindcss.com) · [Clerk](https://clerk.com) · [CodeMirror 6](https://codemirror.net) · [postgres.js](https://github.com/porsager/postgres) · [PlantUML](https://plantuml.com)
+[Next.js 16](https://nextjs.org) (App Router) · [AI SDK](https://ai-sdk.dev) + Vercel AI Gateway · [Mermaid](https://mermaid.js.org) · [Excalidraw](https://github.com/excalidraw/excalidraw) · [React 19](https://react.dev) · [Tailwind CSS 4](https://tailwindcss.com) · [Clerk](https://clerk.com) · [CodeMirror 6](https://codemirror.net) · [postgres.js](https://github.com/porsager/postgres) · [PlantUML](https://plantuml.com)
 
 ## Contributing
 

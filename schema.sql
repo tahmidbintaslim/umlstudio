@@ -16,3 +16,15 @@ create table if not exists ai_usage (
   created_at timestamptz not null default now()
 );
 create index if not exists ai_usage_user_idx on ai_usage (user_id, created_at desc);
+
+-- First-party, cookieless analytics (see src/app/api/track).
+create table if not exists page_views (
+  id         bigserial primary key,
+  path       text not null,
+  referrer   text,
+  country    text,
+  device     text,
+  visitor    text not null,
+  created_at timestamptz not null default now()
+);
+create index if not exists page_views_created_idx on page_views (created_at desc);

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import CodeMirror from "@uiw/react-codemirror";
 import { Group, Panel, Separator } from "react-resizable-panels";
 import { useTheme } from "next-themes";
@@ -9,22 +10,29 @@ import { useAuth, Show, SignInButton, UserButton } from "@clerk/nextjs";
 import { toast } from "sonner";
 import {
   Check, ChevronDown, Cloud, Download, FolderOpen, Link2, Loader2, Maximize, Moon,
-  Sparkles, Sun, Trash2, TriangleAlert, Wand2, ZoomIn, ZoomOut,
+  PenTool, Sparkles, Sun, Trash2, TriangleAlert, Wand2, ZoomIn, ZoomOut,
 } from "lucide-react";
 import { plantuml } from "@/lib/plantuml-lang";
 import { EXAMPLES } from "@/lib/examples";
 import { decodeUml, encodeUml, renderUrl, type Format } from "@/lib/plantuml";
-import { detectLang } from "@/lib/lang";
+import { detectKind, detectLang } from "@/lib/lang";
 import { renderMermaid, svgToPng } from "@/lib/mermaid";
 import { GithubStar } from "./github-star";
 import { LogoMark } from "./logo";
 import { AiPanel, askAi } from "./ai-panel";
 
 const DRAFT_KEY = "umlstudio:draft";
+const isCloud = (src: string) => src.includes("!include <");
+const TEMPLATE_GROUPS: [string, (src: string) => boolean][] = [
+  ["UML (PlantUML)", (src) => detectLang(src) === "plantuml" && !isCloud(src)],
+  ["Cloud & architecture", isCloud],
+  ["Mermaid", (src) => detectLang(src) === "mermaid"],
+];
 type Saved = { id: string; title: string; source: string; updated_at: string };
 
 export function EditorApp() {
   const { isSignedIn } = useAuth();
+  const router = useRouter();
   const { resolvedTheme, setTheme } = useTheme();
   const [source, setSource] = useState<string | null>(null);
   const [title, setTitle] = useState("Untitled");
@@ -173,6 +181,12 @@ export function EditorApp() {
     toast.success("Diagram updated by AI", { action: { label: "Undo", onClick: () => setSource(prev) } });
   };
 
+  // Hand the Mermaid source to /board, which converts it to editable shapes.
+  const openInWhiteboard = () => {
+    try { sessionStorage.setItem("umlstudio:to-board", source ?? ""); } catch {}
+    router.push("/board?from=code");
+  };
+
   const fixWithAi = async () => {
     if (!isSignedIn) return setAiOpen(true);
     setFixing(true);
@@ -199,10 +213,10 @@ export function EditorApp() {
           className="hidden w-48 min-w-0 rounded-md sm:block bg-transparent px-2 py-1 text-sm outline-none hover:bg-muted focus:bg-muted focus:ring-2 focus:ring-accent/40 "
         />
         <Menu label="Templates">
-          {(["plantuml", "mermaid"] as const).map((l) => (
-            <div key={l}>
-              <p className="px-3 pb-1 pt-2 text-[11px] font-medium uppercase tracking-wide text-fg/40">{l === "plantuml" ? "PlantUML" : "Mermaid"}</p>
-              {EXAMPLES.filter((ex) => detectLang(ex.source) === l).map((ex) => (
+          {TEMPLATE_GROUPS.map(([label, match]) => (
+            <div key={label}>
+              <p className="px-3 pb-1 pt-2 text-[11px] font-medium uppercase tracking-wide text-fg/40">{label}</p>
+              {EXAMPLES.filter((ex) => match(ex.source)).map((ex) => (
                 <MenuItem key={ex.name} onClick={() => loadDiagram(ex.source, ex.name, null)}>{ex.name}</MenuItem>
               ))}
             </div>
@@ -212,6 +226,9 @@ export function EditorApp() {
           className="flex h-8 items-center gap-1.5 rounded-md bg-gradient-to-r from-indigo-500 to-fuchsia-500 px-3 text-sm font-medium text-white shadow-sm hover:opacity-90">
           <Sparkles size={14} /> <span className="hidden sm:inline">AI</span>
         </button>
+        <Link href="/board" className="hidden h-8 items-center gap-1.5 rounded-md px-2 text-sm text-fg/80 hover:bg-muted hover:text-fg md:flex">
+          <PenTool size={14} /> Whiteboard
+        </Link>
 
         <div className="ml-auto flex items-center gap-1">
           <IconBtn label="Copy share link" onClick={share}><Link2 size={16} /></IconBtn>
@@ -289,6 +306,12 @@ export function EditorApp() {
                 {fixing ? <Loader2 size={12} className="animate-spin" /> : <Wand2 size={12} />} Fix with AI
               </button>
             )}
+            {lang === "mermaid" && !preview?.error && (
+              <button onClick={openInWhiteboard} title="Convert to an editable whiteboard drawing"
+                className="hidden items-center gap-1 rounded-md border border-line bg-bg/80 px-2 py-1 text-xs text-fg/70 backdrop-blur hover:text-fg sm:flex">
+                <PenTool size={12} /> Edit on whiteboard
+              </button>
+            )}
             {(format !== "txt" || lang === "mermaid") && (
               <div className="ml-auto flex items-center rounded-lg border border-line bg-bg/80 backdrop-blur">
                 <IconBtn label="Zoom out" onClick={() => setZoom((z) => Math.max(0.1, z / 1.2))}><ZoomOut size={14} /></IconBtn>
@@ -346,7 +369,10 @@ export function EditorApp() {
       {libraryOpen && (
         <Library
           onClose={() => setLibraryOpen(false)}
-          onOpen={(d) => { loadDiagram(d.source, d.title, d.id); setLibraryOpen(false); }}
+          onOpen={(d) => {
+            if (detectKind(d.source) === "excalidraw") return router.push(`/board?id=${d.id}`);
+            loadDiagram(d.source, d.title, d.id); setLibraryOpen(false);
+          }}
           activeId={cloudId}
           onDeleted={(id) => id === cloudId && setCloudId(null)}
         />

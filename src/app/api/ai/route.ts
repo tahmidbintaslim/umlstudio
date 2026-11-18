@@ -1,12 +1,13 @@
 import { auth } from "@clerk/nextjs/server";
 import { generateText } from "ai";
-import { sql, MAX_SOURCE } from "@/lib/db";
+import { sql } from "@/lib/db";
 
 // gpt-5-mini: available on the AI Gateway free tier, reads images, and produced valid diagrams
 // in testing. Set AI_MODEL (e.g. anthropic/claude-sonnet-5.5) after adding gateway credits.
 const MODEL = process.env.AI_MODEL || "openai/gpt-5-mini";
 const DAILY_LIMIT = 25; // per user, rolling 24h — caps the AI bill
 const MAX_IMAGE = 5 * 1024 * 1024;
+const MAX_AI_SOURCE = 100_000; // chars of diagram code sent to the model
 const IMAGE_TYPES = ["image/png", "image/jpeg", "image/webp", "image/gif"];
 
 const SYSTEM = `You are an expert at technical diagrams: UML (sequence, class, activity, use case, state, component, deployment), ER/database schemas, system architecture, flowcharts, mind maps, Gantt charts.
@@ -28,7 +29,7 @@ export async function POST(req: Request) {
   const lang = b?.lang === "mermaid" ? "Mermaid" : "PlantUML";
   const prompt = typeof b?.prompt === "string" ? b.prompt.trim().slice(0, 4000) : "";
   const source = typeof b?.source === "string" ? b.source : "";
-  if (!mode || !["create", "edit", "fix"].includes(mode) || source.length > MAX_SOURCE)
+  if (!mode || !["create", "edit", "fix"].includes(mode) || source.length > MAX_AI_SOURCE)
     return Response.json({ error: "Invalid request" }, { status: 400 });
 
   // Image arrives as a data URL from the browser; validate type and size before forwarding.

@@ -4,7 +4,7 @@ import { AdminStats } from "@/components/admin-stats";
 
 export const metadata = { title: "Admin · UML Studio", robots: { index: false } };
 
-// Static shell; stats load client-side from /api/admin, which enforces ADMIN_EMAILS.
+// Static shell; stats load client-side from /api/admin, guarded by the Clerk admin role (see src/proxy.ts).
 export default function AdminPage() {
   return (
     <main className="mx-auto max-w-5xl space-y-8 p-6">
