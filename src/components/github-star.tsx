@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Star } from "lucide-react";
 
-const REPO = process.env.NEXT_PUBLIC_GITHUB_REPO || "your-username/umlstudio";
+const REPO = process.env.NEXT_PUBLIC_GITHUB_REPO || "tahmidbintaslim/umlstudio";
 
 // "Star on GitHub" pill with live count (unauthenticated GitHub API, 60 req/h per IP is plenty).
 export function GithubStar() {

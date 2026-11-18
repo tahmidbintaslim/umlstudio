@@ -8,7 +8,7 @@ Type on the left, see the diagram on the right — instantly.
 [![MIT License](https://img.shields.io/badge/license-MIT-6366f1.svg)](LICENSE)
 [![Next.js 16](https://img.shields.io/badge/Next.js-16-black?logo=next.js)](https://nextjs.org)
 [![PRs welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
-[![GitHub stars](https://img.shields.io/github/stars/your-username/umlstudio?style=social)](https://github.com/your-username/umlstudio)
+[![GitHub stars](https://img.shields.io/github/stars/tahmidbintaslim/umlstudio?style=social)](https://github.com/tahmidbintaslim/umlstudio)
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/screenshot-dark.png">
@@ -45,7 +45,7 @@ Type on the left, see the diagram on the right — instantly.
 ## Quick start
 
 ```bash
-git clone https://github.com/your-username/umlstudio.git
+git clone https://github.com/tahmidbintaslim/umlstudio.git
 cd umlstudio
 npm install
 cp .env.example .env.local   # add your Clerk keys
