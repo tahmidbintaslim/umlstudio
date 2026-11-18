@@ -2,8 +2,8 @@
 
 # UML Studio
 
-**A fast, beautiful, open-source PlantUML editor.**
-Type on the left, see the diagram on the right — instantly.
+**Free, open-source diagram studio with AI. PlantUML, Mermaid, text-to-diagram and photo-to-diagram.**
+Write code, describe it in plain English, or snap a whiteboard photo, and get a clean, editable diagram.
 
 **[▶ Try it live](https://umlstudio.vercel.app)**
 
@@ -21,28 +21,32 @@ Type on the left, see the diagram on the right — instantly.
 
 ## Why UML Studio?
 
-| | PlantText & co. | **UML Studio** |
-|---|---|---|
-| Live preview as you type | ❌ click "Refresh" | ✅ debounced, instant |
-| Resizable split view, mobile layout | ❌ | ✅ |
-| Zoom, fit-to-screen, Ctrl+wheel zoom | ❌ | ✅ |
-| Syntax highlighting | basic | ✅ PlantUML-aware |
-| Inline syntax-error indicator | ❌ | ✅ |
-| Export SVG · PNG · ASCII · `.puml` | partial | ✅ |
-| Share by link (no account, no server storage) | ❌ | ✅ |
-| Save diagrams to your account | ❌ | ✅ Clerk auth + Postgres |
-| Dark mode | ❌ | ✅ |
-| Self-hostable, MIT licensed | ❌ | ✅ |
+Students and developers juggle draw.io, Excalidraw, Miro, Mermaid Live and PlantText, and each covers only part of the job.
+UML Studio puts **diagrams-as-code, AI and export in one free, open-source place.**
 
-## Features
+- **Three ways in.** Write PlantUML or Mermaid, **describe** the diagram in plain English, or **upload a photo** of a whiteboard, hand sketch or screenshot. AI turns it into clean, editable code.
+- **Fix with AI.** Syntax error? One click repairs it.
+- **Two languages, one editor.** PlantUML *and* Mermaid, detected automatically, with 16 templates.
+- **Live preview** as you type, resizable split view, zoom and fit, dark mode, mobile layout.
+- **Export** SVG, PNG, ASCII art, `.puml` / `.mmd`.
+- **Share links** that hold the whole diagram in the URL, with nothing stored server-side.
+- **Cloud library.** Sign in (GitHub, Google or email) and save every diagram.
+- **Safe preview.** Diagrams render as images, so markup inside an SVG can't run script.
+- **MIT licensed** and self-hostable, including your own PlantUML server.
 
-- ⚡ **Live rendering** — every keystroke, debounced, with in-flight requests cancelled.
-- 🎨 **Polished editor** — CodeMirror 6 with PlantUML highlighting, light/dark themes.
-- 🔗 **Share links** — the diagram is encoded in the URL hash, so nothing is stored server-side.
-- ☁️ **Cloud save** — sign in with Clerk, press <kbd>Ctrl</kbd>/<kbd>⌘</kbd>+<kbd>S</kbd>, open saved diagrams from *My diagrams*.
-- 💾 **Never lose work** — your draft autosaves to the browser.
-- 📚 **10 starter templates** — sequence, class, activity, use case, component, state, ER, mind map, Gantt, JSON.
-- 🔒 **Safe preview** — diagrams render as images, so markup inside an SVG can't run script.
+## Roadmap
+
+Ideas and votes welcome in [issues](https://github.com/tahmidbintaslim/umlstudio/issues).
+
+- [x] PlantUML + Mermaid editor with live preview
+- [x] AI: text → diagram, image → diagram, fix errors, edit by instruction
+- [x] Cloud save, share links, exports
+- [ ] Freehand canvas (sketch, then convert to code with AI)
+- [ ] More languages: D2, Graphviz/DOT, C4, BPMN
+- [ ] Explain-this-diagram and diagram-from-codebase (paste SQL schema / OpenAPI / code)
+- [ ] Real-time collaboration and comments
+- [ ] Public template gallery from the community
+- [ ] VS Code extension and embeddable diagrams for docs
 
 ## Quick start
 
@@ -61,6 +65,8 @@ Open http://localhost:3000.
 | Variable | Required | Description |
 |---|---|---|
 | `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` / `CLERK_SECRET_KEY` | yes | From the [Clerk dashboard](https://dashboard.clerk.com) |
+| `AI_GATEWAY_API_KEY` | local only | AI features use [Vercel AI Gateway](https://vercel.com/ai-gateway). On Vercel it authenticates automatically; locally create a key in the Vercel dashboard. |
+| `ADMIN_EMAILS` | no | Comma-separated emails allowed to open the `/admin` usage dashboard |
 | `DATABASE_URL` | no | Postgres for cloud save. Run [`schema.sql`](schema.sql) once. Without it, the editor, drafts and share links still work. |
 | `NEXT_PUBLIC_PLANTUML_SERVER` | no | Your own PlantUML server (default: public plantuml.com) |
 | `NEXT_PUBLIC_GITHUB_REPO` | no | `owner/repo` for the star button |
@@ -80,7 +86,7 @@ Or any Node host: import the repo, add the environment variables, done.
 
 ## Tech stack
 
-[Next.js 16](https://nextjs.org) (App Router) · [React 19](https://react.dev) · [Tailwind CSS 4](https://tailwindcss.com) · [Clerk](https://clerk.com) · [CodeMirror 6](https://codemirror.net) · [postgres.js](https://github.com/porsager/postgres) · [PlantUML](https://plantuml.com)
+[Next.js 16](https://nextjs.org) (App Router) · [AI SDK](https://ai-sdk.dev) + Claude via Vercel AI Gateway · [Mermaid](https://mermaid.js.org) · [React 19](https://react.dev) · [Tailwind CSS 4](https://tailwindcss.com) · [Clerk](https://clerk.com) · [CodeMirror 6](https://codemirror.net) · [postgres.js](https://github.com/porsager/postgres) · [PlantUML](https://plantuml.com)
 
 ## Contributing
 

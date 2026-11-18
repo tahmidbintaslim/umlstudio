@@ -8,13 +8,17 @@ import { useTheme } from "next-themes";
 import { useAuth, Show, SignInButton, UserButton } from "@clerk/nextjs";
 import { toast } from "sonner";
 import {
-  Check, ChevronDown, Cloud, Download, FileCode2, FolderOpen, Link2, Loader2, Maximize, Moon,
-  Sun, Trash2, TriangleAlert, ZoomIn, ZoomOut,
+  Check, ChevronDown, Cloud, Download, FolderOpen, Link2, Loader2, Maximize, Moon,
+  Sparkles, Sun, Trash2, TriangleAlert, Wand2, ZoomIn, ZoomOut,
 } from "lucide-react";
 import { plantuml } from "@/lib/plantuml-lang";
 import { EXAMPLES } from "@/lib/examples";
 import { decodeUml, encodeUml, renderUrl, type Format } from "@/lib/plantuml";
+import { detectLang } from "@/lib/lang";
+import { renderMermaid, svgToPng } from "@/lib/mermaid";
 import { GithubStar } from "./github-star";
+import { LogoMark } from "./logo";
+import { AiPanel, askAi } from "./ai-panel";
 
 const DRAFT_KEY = "umlstudio:draft";
 type Saved = { id: string; title: string; source: string; updated_at: string };
@@ -26,19 +30,23 @@ export function EditorApp() {
   const [title, setTitle] = useState("Untitled");
   const [cloudId, setCloudId] = useState<string | null>(null);
   const [format, setFormat] = useState<Format>("svg");
-  const [preview, setPreview] = useState<{ url?: string; text?: string; error: boolean } | null>(null);
+  // svg: Mermaid output kept for export; message: renderer error passed to "Fix with AI".
+  const [preview, setPreview] = useState<{ url?: string; text?: string; svg?: string; error: boolean; message?: string } | null>(null);
   const [loading, setLoading] = useState(false);
   const [zoom, setZoom] = useState(1);
   const [natural, setNatural] = useState({ w: 0, h: 0 });
   const [saving, setSaving] = useState(false);
   const [libraryOpen, setLibraryOpen] = useState(false);
+  const [aiOpen, setAiOpen] = useState(false);
+  const [fixing, setFixing] = useState(false);
+  const lang = detectLang(source ?? "");
   const vertical = useMediaQuery("(max-width: 768px)");
   const viewport = useRef<HTMLDivElement>(null);
   const fitted = useRef(false);
 
   // Load: share link (#encoded) > local draft > first example. Browser-only sources, so this runs on mount.
-  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
+    if (new URLSearchParams(location.search).has("ai")) setAiOpen(true); // deep link from the landing page
     const hash = location.hash.slice(1);
     if (hash) {
       try { setSource(decodeUml(hash)); return; } catch { toast.error("Share link is invalid"); }
@@ -50,7 +58,6 @@ export function EditorApp() {
     setSource(EXAMPLES[0].source);
     setTitle("User Authentication");
   }, []);
-  /* eslint-enable react-hooks/set-state-in-effect */
 
   // Autosave draft locally.
   useEffect(() => {
@@ -65,6 +72,18 @@ export function EditorApp() {
     const t = setTimeout(async () => {
       setLoading(true);
       try {
+        if (lang === "mermaid") {
+          try {
+            const svg = await renderMermaid(source);
+            if (ctrl.signal.aborted) return;
+            const url = URL.createObjectURL(new Blob([svg], { type: "image/svg+xml" }));
+            setPreview((p) => { if (p?.url) URL.revokeObjectURL(p.url); return { url, svg, error: false }; });
+          } catch (e) {
+            // Keep the last good render visible while the user is mid-edit.
+            if (!ctrl.signal.aborted) setPreview((p) => ({ ...p, error: true, message: (e as Error).message }));
+          }
+          return;
+        }
         const res = await fetch(renderUrl(source, format), { signal: ctrl.signal });
         const error = !res.ok;
         if (format === "txt") setPreview({ text: await res.text(), error });
@@ -79,7 +98,7 @@ export function EditorApp() {
       }
     }, 350);
     return () => { clearTimeout(t); ctrl.abort(); };
-  }, [source, format]);
+  }, [source, format, lang]);
 
   const fit = useCallback(() => {
     const el = viewport.current;
@@ -87,15 +106,17 @@ export function EditorApp() {
     setZoom(Math.min(1, (el.clientWidth - 48) / natural.w, (el.clientHeight - 88) / natural.h));
   }, [natural]);
 
-  const download = async (kind: Format | "puml") => {
+  const download = async (kind: Format | "source") => {
     if (source === null) return;
     const name = (title || "diagram").replace(/[^\w-]+/g, "_");
-    const blob = kind === "puml"
-      ? new Blob([source], { type: "text/plain" })
-      : await fetch(renderUrl(source, kind)).then((r) => r.blob()).catch(() => null);
+    const ext = kind === "source" ? (lang === "mermaid" ? "mmd" : "puml") : kind;
+    const blob = kind === "source" ? new Blob([source], { type: "text/plain" })
+      : lang === "mermaid"
+        ? (preview?.svg ? (kind === "png" ? await svgToPng(preview.svg) : new Blob([preview.svg], { type: "image/svg+xml" })) : null)
+        : await fetch(renderUrl(source, kind)).then((r) => r.blob()).catch(() => null);
     if (!blob) return toast.error("Download failed");
     const a = Object.assign(document.createElement("a"), {
-      href: URL.createObjectURL(blob), download: `${name}.${kind === "txt" ? "txt" : kind}`,
+      href: URL.createObjectURL(blob), download: `${name}.${ext}`,
     });
     a.click();
     URL.revokeObjectURL(a.href);
@@ -103,7 +124,7 @@ export function EditorApp() {
 
   const share = async () => {
     if (source === null) return;
-    const url = `${location.origin}/#${encodeUml(source)}`;
+    const url = `${location.origin}/app#${encodeUml(source)}`;
     history.replaceState(null, "", url);
     await navigator.clipboard.writeText(url);
     toast.success("Share link copied");
@@ -141,7 +162,23 @@ export function EditorApp() {
 
   const loadDiagram = (src: string, name: string, id: string | null) => {
     setSource(src); setTitle(name); setCloudId(id);
-    history.replaceState(null, "", "/");
+    history.replaceState(null, "", "/app");
+  };
+
+  // Replace the source with AI output, offering one-click undo since this bypasses editor history.
+  const applyAi = (code: string) => {
+    const prev = source;
+    setSource(code);
+    fitted.current = false;
+    toast.success("Diagram updated by AI", { action: { label: "Undo", onClick: () => setSource(prev) } });
+  };
+
+  const fixWithAi = async () => {
+    if (!isSignedIn) return setAiOpen(true);
+    setFixing(true);
+    try { applyAi(await askAi({ mode: "fix", lang, source: source ?? "", error: preview?.message })); }
+    catch (e) { toast.error((e as Error).message); }
+    finally { setFixing(false); }
   };
 
   const dark = resolvedTheme === "dark";
@@ -151,7 +188,7 @@ export function EditorApp() {
       {/* Top bar */}
       <header className="flex h-14 shrink-0 items-center gap-2 border-b border-line px-3 sm:px-4">
         <Link href="/" className="flex items-center gap-2 font-semibold tracking-tight" aria-label="UML Studio home">
-          <span className="grid size-7 place-items-center rounded-lg bg-accent text-white"><FileCode2 size={16} /></span>
+          <LogoMark />
           <span className="hidden sm:inline">UML Studio</span>
         </Link>
         <span className="mx-1 hidden h-5 w-px bg-line sm:block" />
@@ -161,19 +198,28 @@ export function EditorApp() {
           aria-label="Diagram title"
           className="hidden w-48 min-w-0 rounded-md sm:block bg-transparent px-2 py-1 text-sm outline-none hover:bg-muted focus:bg-muted focus:ring-2 focus:ring-accent/40 "
         />
-        <Menu label="Examples">
-          {EXAMPLES.map((ex) => (
-            <MenuItem key={ex.name} onClick={() => loadDiagram(ex.source, ex.name, null)}>{ex.name}</MenuItem>
+        <Menu label="Templates">
+          {(["plantuml", "mermaid"] as const).map((l) => (
+            <div key={l}>
+              <p className="px-3 pb-1 pt-2 text-[11px] font-medium uppercase tracking-wide text-fg/40">{l === "plantuml" ? "PlantUML" : "Mermaid"}</p>
+              {EXAMPLES.filter((ex) => detectLang(ex.source) === l).map((ex) => (
+                <MenuItem key={ex.name} onClick={() => loadDiagram(ex.source, ex.name, null)}>{ex.name}</MenuItem>
+              ))}
+            </div>
           ))}
         </Menu>
+        <button onClick={() => setAiOpen(true)}
+          className="flex h-8 items-center gap-1.5 rounded-md bg-gradient-to-r from-indigo-500 to-fuchsia-500 px-3 text-sm font-medium text-white shadow-sm hover:opacity-90">
+          <Sparkles size={14} /> <span className="hidden sm:inline">AI</span>
+        </button>
 
         <div className="ml-auto flex items-center gap-1">
           <IconBtn label="Copy share link" onClick={share}><Link2 size={16} /></IconBtn>
           <Menu label={<Download size={16} />} ariaLabel="Download" align="right">
             <MenuItem onClick={() => download("svg")}>SVG image</MenuItem>
             <MenuItem onClick={() => download("png")}>PNG image</MenuItem>
-            <MenuItem onClick={() => download("txt")}>ASCII art</MenuItem>
-            <MenuItem onClick={() => download("puml")}>PlantUML source (.puml)</MenuItem>
+            {lang === "plantuml" && <MenuItem onClick={() => download("txt")}>ASCII art</MenuItem>}
+            <MenuItem onClick={() => download("source")}>{lang === "mermaid" ? "Mermaid source (.mmd)" : "PlantUML source (.puml)"}</MenuItem>
           </Menu>
           <Show when="signed-in">
             <IconBtn label="My diagrams" onClick={() => setLibraryOpen(true)}><FolderOpen size={16} /></IconBtn>
@@ -207,12 +253,12 @@ export function EditorApp() {
             <CodeMirror
               value={source}
               onChange={setSource}
-              extensions={[plantuml]}
+              extensions={lang === "plantuml" ? [plantuml] : []}
               theme={dark ? "dark" : "light"}
               height="100%"
               className="h-full text-[13px]"
               basicSetup={{ highlightActiveLine: true, foldGutter: false }}
-              aria-label="PlantUML source"
+              aria-label="Diagram source"
             />
           )}
         </Panel>
@@ -220,7 +266,8 @@ export function EditorApp() {
         <Panel minSize="20" className="relative min-h-0">
           {/* Preview toolbar */}
           <div className="absolute inset-x-0 top-0 z-10 flex items-center gap-2 p-3">
-            <div role="tablist" aria-label="Preview format" className="flex rounded-lg border border-line bg-bg/80 p-0.5 text-xs backdrop-blur">
+            <span className="rounded-md border border-line bg-bg/80 px-2 py-1 text-xs font-medium text-fg/70 backdrop-blur">{lang === "mermaid" ? "Mermaid" : "PlantUML"}</span>
+            {lang === "plantuml" && <div role="tablist" aria-label="Preview format" className="flex rounded-lg border border-line bg-bg/80 p-0.5 text-xs backdrop-blur">
               {(["svg", "png", "txt"] as Format[]).map((f) => (
                 <button
                   key={f} role="tab" aria-selected={format === f} onClick={() => setFormat(f)}
@@ -229,14 +276,20 @@ export function EditorApp() {
                   {f === "txt" ? "ascii" : f}
                 </button>
               ))}
-            </div>
+            </div>}
             {loading && <Loader2 size={14} className="animate-spin text-fg/50" aria-label="Rendering" />}
             {preview?.error && !loading && (
               <span className="flex items-center gap-1 rounded-md bg-amber-500/15 px-2 py-1 text-xs text-amber-600 dark:text-amber-400">
                 <TriangleAlert size={12} /> Syntax error
               </span>
             )}
-            {format !== "txt" && (
+            {preview?.error && !loading && (
+              <button onClick={fixWithAi} disabled={fixing}
+                className="flex items-center gap-1 rounded-md bg-accent px-2 py-1 text-xs font-medium text-white hover:bg-accent/90 disabled:opacity-60">
+                {fixing ? <Loader2 size={12} className="animate-spin" /> : <Wand2 size={12} />} Fix with AI
+              </button>
+            )}
+            {(format !== "txt" || lang === "mermaid") && (
               <div className="ml-auto flex items-center rounded-lg border border-line bg-bg/80 backdrop-blur">
                 <IconBtn label="Zoom out" onClick={() => setZoom((z) => Math.max(0.1, z / 1.2))}><ZoomOut size={14} /></IconBtn>
                 <button onClick={() => setZoom(1)} className="w-12 text-xs tabular-nums text-fg/70 hover:text-fg" title="Reset zoom">
@@ -251,13 +304,13 @@ export function EditorApp() {
             ref={viewport}
             className="dot-grid h-full overflow-auto"
             onWheel={(e) => {
-              if (!(e.ctrlKey || e.metaKey) || format === "txt") return;
+              if (!(e.ctrlKey || e.metaKey) || (format === "txt" && lang === "plantuml")) return;
               setZoom((z) => Math.min(8, Math.max(0.1, z * (e.deltaY < 0 ? 1.1 : 0.9))));
             }}
           >
             {/* w-max + mx-auto: centers small diagrams, but wide ones stay scrollable (justify-center would clip the left edge) */}
             <div className="mx-auto w-max min-w-full p-6 pt-16 text-center">
-              {format === "txt" ? (
+              {format === "txt" && lang === "plantuml" ? (
                 <pre className="inline-block text-left rounded-xl border border-line bg-bg p-4 font-mono text-xs leading-tight">{preview?.text}</pre>
               ) : preview?.url ? (
                 // Rendered as <img> so any markup inside the SVG can't run script.
@@ -285,6 +338,10 @@ export function EditorApp() {
           </div>
         </Panel>
       </Group>
+
+      {aiOpen && (
+        <AiPanel signedIn={!!isSignedIn} lang={lang} source={source ?? ""} onClose={() => setAiOpen(false)} onResult={applyAi} />
+      )}
 
       {libraryOpen && (
         <Library

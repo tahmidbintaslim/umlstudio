@@ -152,4 +152,74 @@ Project starts 2026-01-05
 }
 @endjson`,
   },
+  // ---- Mermaid ----
+  {
+    name: "Flowchart",
+    source: `flowchart LR
+  A[User request] --> B{Authenticated?}
+  B -- yes --> C[Load dashboard]
+  B -- no --> D[Sign-in page]
+  D --> B
+  C --> E[(Database)]`,
+  },
+  {
+    name: "Sequence (Mermaid)",
+    source: `sequenceDiagram
+  autonumber
+  participant C as Client
+  participant A as API
+  participant D as DB
+  C->>A: POST /orders
+  A->>D: insert order
+  D-->>A: id
+  A-->>C: 201 Created`,
+  },
+  {
+    name: "ER (Mermaid)",
+    source: `erDiagram
+  USER ||--o{ ORDER : places
+  ORDER ||--|{ LINE_ITEM : contains
+  PRODUCT ||--o{ LINE_ITEM : "ordered in"
+  USER {
+    uuid id PK
+    string email
+  }
+  ORDER {
+    uuid id PK
+    uuid user_id FK
+    date created_at
+  }`,
+  },
+  {
+    name: "Class (Mermaid)",
+    source: `classDiagram
+  class Animal {
+    +String name
+    +speak() void
+  }
+  class Dog
+  class Cat
+  Animal <|-- Dog
+  Animal <|-- Cat`,
+  },
+  {
+    name: "Git graph",
+    source: `gitGraph
+  commit
+  branch feature
+  checkout feature
+  commit
+  commit
+  checkout main
+  merge feature
+  commit`,
+  },
+  {
+    name: "Timeline",
+    source: `timeline
+  title Product launch
+  Q1 : Research : Prototype
+  Q2 : Beta
+  Q3 : Public launch`,
+  },
 ];

@@ -7,3 +7,12 @@ create table if not exists diagrams (
   updated_at timestamptz not null default now()
 );
 create index if not exists diagrams_user_idx on diagrams (user_id, updated_at desc);
+
+-- One row per AI request: powers the per-user daily limit and the /admin stats.
+create table if not exists ai_usage (
+  id         bigserial primary key,
+  user_id    text not null,
+  mode       text not null,
+  created_at timestamptz not null default now()
+);
+create index if not exists ai_usage_user_idx on ai_usage (user_id, created_at desc);
