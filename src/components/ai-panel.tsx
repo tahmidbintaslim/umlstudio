@@ -22,6 +22,9 @@ const IDEAS = [
   "Microservices architecture with API gateway, auth, orders and payments",
   "Use case diagram for an ATM",
   "Flowchart of a CI/CD pipeline",
+  "ER diagram from this SQL schema:\n",
+  "Sequence diagram of the main flows in this OpenAPI spec:\n",
+  "Class diagram from this code:\n",
 ];
 
 // Phone photos are often 5–10 MB; downscale to keep uploads fast and well under the API limit.
@@ -54,9 +57,18 @@ export function AiPanel({ signedIn, lang, source, onClose, onResult, whiteboard 
     return () => removeEventListener("keydown", onKey);
   }, [onClose, busy]);
 
+  // Images go to vision; text files (SQL, OpenAPI, source code) are appended to the prompt.
   const attach = async (file?: File | null) => {
-    if (!file?.type.startsWith("image/")) return;
-    try { setImage(await toDataUrl(file)); setError(null); } catch { setError("Could not read that image"); }
+    if (!file) return;
+    if (file.type.startsWith("image/")) {
+      try { setImage(await toDataUrl(file)); setError(null); } catch { setError("Could not read that image"); }
+      return;
+    }
+    if (file.size > 100_000) return setError("Text files must be under 100 KB");
+    const text = await file.text().catch(() => null);
+    if (text === null || text.includes("\u0000")) return setError("That file isn't text or an image");
+    setPrompt((p) => `${p || "Diagram this:"}\n\n--- ${file.name} ---\n${text}`);
+    setError(null);
   };
 
   const submit = async () => {
@@ -143,11 +155,11 @@ export function AiPanel({ signedIn, lang, source, onClose, onResult, whiteboard 
               ) : (
                 <button onClick={() => fileInput.current?.click()} className="flex w-full flex-col items-center gap-1 py-3 text-fg/60 hover:text-fg">
                   <ImagePlus size={20} />
-                  <span>Add a photo, sketch or screenshot</span>
-                  <span className="text-xs text-fg/40">Click, drop or paste · whiteboards and hand drawings work too</span>
+                  <span>Add a photo, sketch, screenshot, or a file</span>
+                  <span className="text-xs text-fg/40">Images, SQL schemas, OpenAPI specs or source code · click, drop or paste</span>
                 </button>
               )}
-              <input ref={fileInput} type="file" accept="image/*" hidden onChange={(e) => attach(e.target.files?.[0])} />
+              <input ref={fileInput} type="file" accept="image/*,.sql,.json,.yaml,.yml,.prisma,.graphql,.ts,.tsx,.js,.py,.java,.go,.cs,.rb,.php,.kt,.txt,.md" hidden onChange={(e) => attach(e.target.files?.[0])} />
             </div>
 
             {mode === "create" && !prompt && !image && (

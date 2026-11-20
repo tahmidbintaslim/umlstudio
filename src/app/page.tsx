@@ -4,15 +4,13 @@ import {
   ArrowRight, Camera, Check, CloudCog, Code2, Download, FolderOpen, GraduationCap, Link2, Minus,
   PenTool, Sparkles, Terminal, Users, Wand2, Workflow,
 } from "lucide-react";
-import { Logo } from "@/components/logo";
-import { GithubStar } from "@/components/github-star";
 import { LegacyHashRedirect } from "@/components/legacy-hash-redirect";
-import { NavAuth } from "@/components/nav-auth";
+import { SiteFooter, SiteHeader } from "@/components/site-chrome";
 
 const REPO = "https://github.com/tahmidbintaslim/umlstudio";
 
 const WAYS = [
-  { icon: Code2, title: "Write code", body: "PlantUML or Mermaid with live preview and 22 templates. Diagrams live in text, so they diff, review and version like code." },
+  { icon: Code2, title: "Write code", body: "PlantUML, Mermaid or Graphviz with live preview and 24 templates. Diagrams live in text, so they diff, review and version like code." },
   { icon: PenTool, title: "Sketch freely", body: "A hand-drawn style whiteboard for brainstorming and system design. Turn any Mermaid diagram into shapes you can drag around." },
   { icon: Sparkles, title: "Describe it", body: "“ER diagram for a food-delivery app with restaurants, orders and riders.” Get a clean, editable diagram in seconds." },
   { icon: Camera, title: "Snap a photo", body: "Whiteboard after a lecture, a hand sketch, or a screenshot of an old diagram. AI redraws it as a crisp diagram you can edit." },
@@ -53,25 +51,7 @@ export default function Landing() {
     <div className="min-h-dvh bg-bg text-fg">
       <LegacyHashRedirect />
 
-      {/* Nav */}
-      <header className="sticky top-0 z-40 border-b border-line/60 bg-bg/80 backdrop-blur">
-        <nav className="mx-auto flex h-16 max-w-6xl items-center gap-6 px-4">
-          <Link href="/" aria-label="UML Studio home"><Logo /></Link>
-          <div className="hidden items-center gap-5 text-sm text-fg/70 md:flex">
-            <a href="#features" className="hover:text-fg">Features</a>
-            <Link href="/board" className="hover:text-fg">Whiteboard</Link>
-            <a href="#compare" className="hover:text-fg">Compare</a>
-            <a href={REPO} className="hover:text-fg">GitHub</a>
-          </div>
-          <div className="ml-auto flex items-center gap-2">
-            <GithubStar />
-            <NavAuth />
-            <Link href="/app" className="flex h-9 items-center gap-1.5 rounded-md bg-accent px-4 text-sm font-medium text-white hover:bg-accent/90">
-              Open editor <ArrowRight size={14} />
-            </Link>
-          </div>
-        </nav>
-      </header>
+      <SiteHeader />
 
       <main>
         {/* Hero */}
@@ -203,17 +183,7 @@ export default function Landing() {
         </section>
       </main>
 
-      <footer className="border-t border-line">
-        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-4 py-8 text-sm text-fg/60 sm:flex-row">
-          <Logo />
-          <div className="flex gap-5">
-            <Link href="/app" className="hover:text-fg">Editor</Link>
-            <a href={REPO} className="hover:text-fg">GitHub</a>
-            <a href={`${REPO}/issues/new/choose`} className="hover:text-fg">Feedback</a>
-          </div>
-          <p>MIT licensed · © 2026 Tahmid Bin Taslim Rafi</p>
-        </div>
-      </footer>
+      <SiteFooter />
     </div>
   );
 }

@@ -23,9 +23,11 @@ import { AiPanel, askAi } from "./ai-panel";
 
 const DRAFT_KEY = "umlstudio:draft";
 const isCloud = (src: string) => src.includes("!include <");
+const isDot = (src: string) => src.startsWith("@startdot");
 const TEMPLATE_GROUPS: [string, (src: string) => boolean][] = [
-  ["UML (PlantUML)", (src) => detectLang(src) === "plantuml" && !isCloud(src)],
+  ["UML (PlantUML)", (src) => detectLang(src) === "plantuml" && !isCloud(src) && !isDot(src)],
   ["Cloud & architecture", isCloud],
+  ["Graphviz", isDot],
   ["Mermaid", (src) => detectLang(src) === "mermaid"],
 ];
 type Saved = { id: string; title: string; source: string; updated_at: string };
@@ -181,9 +183,19 @@ export function EditorApp() {
     toast.success("Diagram updated by AI", { action: { label: "Undo", onClick: () => setSource(prev) } });
   };
 
-  // Hand the Mermaid source to /board, which converts it to editable shapes.
-  const openInWhiteboard = () => {
-    try { sessionStorage.setItem("umlstudio:to-board", source ?? ""); } catch {}
+  // Hand Mermaid to /board, which converts it to editable shapes. PlantUML is first translated by AI.
+  const [toBoard, setToBoard] = useState(false);
+  const openInWhiteboard = async () => {
+    let code = source ?? "";
+    if (lang === "plantuml") {
+      if (!isSignedIn) return setAiOpen(true);
+      setToBoard(true);
+      try {
+        code = await askAi({ mode: "edit", lang: "mermaid", source: code,
+          prompt: "Convert this PlantUML diagram to the equivalent Mermaid diagram. Prefer flowchart, sequenceDiagram or classDiagram so it can become editable shapes. Return only Mermaid." });
+      } catch (e) { setToBoard(false); return void toast.error((e as Error).message); }
+    }
+    try { sessionStorage.setItem("umlstudio:to-board", code); } catch {}
     router.push("/board?from=code");
   };
 
@@ -306,10 +318,10 @@ export function EditorApp() {
                 {fixing ? <Loader2 size={12} className="animate-spin" /> : <Wand2 size={12} />} Fix with AI
               </button>
             )}
-            {lang === "mermaid" && !preview?.error && (
-              <button onClick={openInWhiteboard} title="Convert to an editable whiteboard drawing"
+            {!preview?.error && (
+              <button onClick={openInWhiteboard} disabled={toBoard} title={lang === "plantuml" ? "AI converts it to an editable whiteboard drawing" : "Convert to an editable whiteboard drawing"}
                 className="hidden items-center gap-1 rounded-md border border-line bg-bg/80 px-2 py-1 text-xs text-fg/70 backdrop-blur hover:text-fg sm:flex">
-                <PenTool size={12} /> Edit on whiteboard
+                {toBoard ? <Loader2 size={12} className="animate-spin" /> : <PenTool size={12} />} Edit on whiteboard
               </button>
             )}
             {(format !== "txt" || lang === "mermaid") && (

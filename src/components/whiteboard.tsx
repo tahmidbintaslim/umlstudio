@@ -6,15 +6,16 @@ import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import { useAuth, SignInButton, UserButton } from "@clerk/nextjs";
 import { toast } from "sonner";
-import { Cloud, Code2, Loader2, Sparkles } from "lucide-react";
+import { Cloud, Code2, FileCode2, Loader2, Sparkles } from "lucide-react";
 import {
-  Excalidraw, MainMenu, WelcomeScreen, convertToExcalidrawElements, restore, serializeAsJSON,
+  Excalidraw, MainMenu, WelcomeScreen, convertToExcalidrawElements, exportToBlob, restore, serializeAsJSON,
 } from "@excalidraw/excalidraw";
 import type { ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types";
 import "@excalidraw/excalidraw/index.css";
 import { detectKind } from "@/lib/lang";
 import { LogoMark } from "./logo";
-import { AiPanel } from "./ai-panel";
+import { AiPanel, askAi } from "./ai-panel";
+import { encodeUml } from "@/lib/plantuml";
 
 const BOARD_KEY = "umlstudio:board";
 
@@ -34,6 +35,7 @@ export default function Whiteboard() {
   const [cloudId, setCloudId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [aiOpen, setAiOpen] = useState(false);
+  const [toCode, setToCode] = useState(false);
   const loaded = useRef(false);
 
   // Drop generated shapes next to existing content and select them so they can be moved as a group.
@@ -115,6 +117,24 @@ export default function Whiteboard() {
     return () => removeEventListener("keydown", onKey);
   }, [save]);
 
+  // Sketch → code: AI reads a PNG of the board and returns Mermaid, opened in the code editor via a share link.
+  const sketchToCode = async () => {
+    if (!api) return;
+    const elements = api.getSceneElements();
+    if (!elements.length) return toast("Draw something first");
+    if (!isSignedIn) return setAiOpen(true); // panel shows the sign-in prompt
+    setToCode(true);
+    try {
+      const blob = await exportToBlob({ elements, appState: { ...api.getAppState(), exportBackground: true, viewBackgroundColor: "#ffffff" }, files: api.getFiles(), mimeType: "image/png", maxWidthOrHeight: 1600 });
+      const image = await new Promise<string>((ok, fail) => { const r = new FileReader(); r.onload = () => ok(r.result as string); r.onerror = fail; r.readAsDataURL(blob); });
+      const code = await askAi({ mode: "create", lang: "mermaid", image, prompt: "Convert this whiteboard sketch into a clean Mermaid diagram that keeps every box, label and arrow." });
+      router.push(`/app#${encodeUml(code)}`);
+    } catch (e) {
+      toast.error((e as Error).message);
+      setToCode(false);
+    }
+  };
+
   const fromCode = async () => {
     const code = prompt("Paste Mermaid code (flowchart, sequence or class diagrams become editable shapes):");
     if (code?.trim()) await insertMermaid(code);
@@ -135,6 +155,10 @@ export default function Whiteboard() {
         </button>
         <button onClick={fromCode} className="hidden h-8 items-center gap-1.5 rounded-md px-2 text-sm text-fg/80 hover:bg-muted hover:text-fg sm:flex">
           <Code2 size={14} /> From code
+        </button>
+        <button onClick={sketchToCode} disabled={toCode} title="AI turns this sketch into Mermaid code"
+          className="hidden h-8 items-center gap-1.5 rounded-md px-2 text-sm text-fg/80 hover:bg-muted hover:text-fg disabled:opacity-60 sm:flex">
+          {toCode ? <Loader2 size={14} className="animate-spin" /> : <FileCode2 size={14} />} To code
         </button>
         <div className="ml-auto flex items-center gap-1">
           <Link href="/app" className="hidden h-8 items-center rounded-md px-2 text-sm text-fg/80 hover:bg-muted hover:text-fg md:flex">Code editor</Link>

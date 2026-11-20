@@ -16,7 +16,8 @@ You write diagram source code. Rules:
 - PlantUML: start with @startuml (or @startmindmap/@startgantt/@startjson etc.) and end with the matching @end tag. Use only syntax the official PlantUML server renders.
 - Mermaid: start with the diagram keyword (flowchart, sequenceDiagram, classDiagram, erDiagram, stateDiagram-v2, gantt, mindmap, ...). Quote labels containing special characters.
 - Prefer clear names, logical grouping and a readable layout. Keep it as detailed as the input implies, never invent large unrelated parts.
-- When given an image (whiteboard photo, screenshot, hand sketch, existing diagram), faithfully reproduce its structure, labels and relationships.`;
+- When given an image (whiteboard photo, screenshot, hand sketch, existing diagram), faithfully reproduce its structure, labels and relationships.
+- When given source material (SQL schema, OpenAPI spec, source code), derive the diagram from it: tables/keys/relations, endpoints/flows, classes/fields/methods/relations.`;
 
 type Body = { mode?: string; lang?: string; prompt?: string; source?: string; error?: string; image?: string };
 
@@ -27,7 +28,7 @@ export async function POST(req: Request) {
   const b: Body | null = await req.json().catch(() => null);
   const mode = b?.mode;
   const lang = b?.lang === "mermaid" ? "Mermaid" : "PlantUML";
-  const prompt = typeof b?.prompt === "string" ? b.prompt.trim().slice(0, 4000) : "";
+  const prompt = typeof b?.prompt === "string" ? b.prompt.trim().slice(0, 30_000) : "";
   const source = typeof b?.source === "string" ? b.source : "";
   if (!mode || !["create", "edit", "fix"].includes(mode) || source.length > MAX_AI_SOURCE)
     return Response.json({ error: "Invalid request" }, { status: 400 });

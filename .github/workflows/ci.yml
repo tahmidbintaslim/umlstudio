@@ -10,4 +10,9 @@ jobs:
       - run: npm ci
       - run: npm run lint
       - run: npx next typegen && npx tsc --noEmit
-      - run: node --experimental-strip-types src/lib/lang.test.mjs
+      - name: Unit tests
+        run: |
+          node --experimental-strip-types src/lib/lang.test.mjs
+          node --experimental-strip-types src/lib/diagram-pages.test.mjs
+      # Full production build; needs no secrets (auth, DB and AI are runtime-only).
+      - run: npm run build

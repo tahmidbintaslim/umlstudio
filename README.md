@@ -5,17 +5,14 @@
 **Free, open-source diagram studio with AI. PlantUML, Mermaid, text-to-diagram and photo-to-diagram.**
 Write code, describe it in plain English, or snap a whiteboard photo, and get a clean, editable diagram.
 
-**[▶ Try it live](https://umlstudio.vercel.app)**
+**[▶ Try it live](https://umlstudio.vercel.app)** · [Diagram types](https://umlstudio.vercel.app/diagrams) · [Whiteboard](https://umlstudio.vercel.app/board)
 
 [![MIT License](https://img.shields.io/badge/license-MIT-6366f1.svg)](LICENSE)
 [![Next.js 16](https://img.shields.io/badge/Next.js-16-black?logo=next.js)](https://nextjs.org)
 [![PRs welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 [![GitHub stars](https://img.shields.io/github/stars/tahmidbintaslim/umlstudio?style=social)](https://github.com/tahmidbintaslim/umlstudio)
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/screenshot-dark.png">
-  <img alt="UML Studio screenshot" src="docs/screenshot-light.png" width="900">
-</picture>
+<img alt="UML Studio demo: typing PlantUML with live preview, an AWS template with official icons, and a Mermaid flowchart turned into editable whiteboard shapes" src="docs/demo.gif" width="900">
 
 </div>
 
@@ -28,7 +25,7 @@ UML Studio puts **diagrams-as-code, AI and export in one free, open-source place
 - **Code ⇄ canvas.** Convert any Mermaid diagram into editable whiteboard shapes (powered by [Excalidraw](https://github.com/excalidraw/excalidraw)), and let AI draw straight onto the board.
 - **Cloud architecture.** Official AWS, Azure, GCP and Kubernetes icons, plus C4 models.
 - **Fix with AI.** Syntax error? One click repairs it.
-- **Two languages, one editor.** PlantUML *and* Mermaid, detected automatically, with 22 templates.
+- **Two languages, one editor.** PlantUML, Mermaid and Graphviz, detected automatically, with 24 templates.
 - **Live preview** as you type, resizable split view, zoom and fit, dark mode, mobile layout.
 - **Export** SVG, PNG, ASCII art, `.puml` / `.mmd`.
 - **Share links** that hold the whole diagram in the URL, with nothing stored server-side.
@@ -45,9 +42,11 @@ Ideas and votes welcome in [issues](https://github.com/tahmidbintaslim/umlstudio
 - [x] Cloud save, share links, exports
 - [x] Whiteboard with code → canvas conversion and AI drawing
 - [x] AWS / Azure / GCP / Kubernetes / C4 templates
-- [ ] Canvas → code (export a sketch back to Mermaid with AI)
-- [ ] More languages: D2, Graphviz/DOT, C4, BPMN
-- [ ] Explain-this-diagram and diagram-from-codebase (paste SQL schema / OpenAPI / code)
+- [x] Graphviz/DOT and C4
+- [x] Whiteboard → code and PlantUML → whiteboard (AI)
+- [x] Diagram from a SQL schema, OpenAPI spec or source code (AI)
+- [ ] More languages: D2, BPMN
+- [ ] Explain-this-diagram
 - [ ] Real-time collaboration and comments
 - [ ] Public template gallery from the community
 - [ ] VS Code extension and embeddable diagrams for docs

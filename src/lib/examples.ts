@@ -268,6 +268,40 @@ dep --> p2
 p1 --> pv
 @enduml`,
   },
+  // ---- Graphviz (DOT, rendered by the PlantUML server) ----
+  {
+    name: "Dependency graph",
+    source: `@startdot
+digraph deps {
+  rankdir=LR;
+  node [shape=box, style="rounded,filled", fillcolor="#eef2ff", color="#6366f1", fontname="Helvetica"];
+  web -> api;
+  web -> auth;
+  api -> db;
+  api -> cache;
+  api -> queue;
+  worker -> queue;
+  worker -> db;
+  db [shape=cylinder];
+  cache [shape=cylinder];
+}
+@enddot`,
+  },
+  {
+    name: "State machine (DOT)",
+    source: `@startdot
+digraph fsm {
+  rankdir=LR;
+  node [shape=circle, fontname="Helvetica"];
+  idle [shape=doublecircle];
+  idle -> loading [label="fetch"];
+  loading -> ready [label="ok"];
+  loading -> error [label="fail"];
+  error -> loading [label="retry"];
+  ready -> idle [label="reset"];
+}
+@enddot`,
+  },
   // ---- Mermaid ----
   {
     name: "Flowchart",
