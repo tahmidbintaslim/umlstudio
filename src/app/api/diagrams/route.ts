@@ -6,7 +6,7 @@ export async function GET() {
   if (!userId) return Response.json({ error: "Unauthorized" }, { status: 401 });
   if (!sql) return Response.json({ error: "Cloud save not configured" }, { status: 503 });
   const rows = await sql`
-    select id, title, source, updated_at from diagrams
+    select id, title, source, updated_at, status from diagrams
     where user_id = ${userId} order by updated_at desc limit 200`;
   return Response.json(rows);
 }

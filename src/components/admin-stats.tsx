@@ -1,11 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { DiagramThumb } from "./diagram-thumb";
 
 type Row = { label: string; n: number };
 type Stats = {
   cards: [string, number][];
   daily: { day: string; visitors: number; views: number }[];
+  pending: { id: string; title: string; source: string }[];
   lists: Record<string, Row[]>;
   users: { id: string; name: string; createdAt: number; lastActiveAt: number | null }[];
 };
@@ -23,8 +25,29 @@ export function AdminStats() {
   if (typeof data === "string") return <p className="text-fg/60">{data}</p>;
 
   const max = Math.max(1, ...data.daily.map((d) => d.views));
+  const moderate = async (id: string, action: "approve" | "reject") => {
+    const res = await fetch("/api/admin", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id, action }) });
+    if (res.ok) setData({ ...data, pending: data.pending.filter((p) => p.id !== id) });
+  };
   return (
     <>
+      {data.pending.length > 0 && (
+        <section>
+          <h2 className="mb-3 font-semibold">Gallery review ({data.pending.length})</h2>
+          <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {data.pending.map((p) => (
+              <li key={p.id} className="overflow-hidden rounded-xl border border-line">
+                <div className="h-40 bg-white p-2"><DiagramThumb source={p.source} alt={p.title} /></div>
+                <div className="flex items-center gap-2 border-t border-line p-3 text-sm">
+                  <span className="min-w-0 flex-1 truncate font-medium">{p.title}</span>
+                  <button onClick={() => moderate(p.id, "reject")} className="rounded-md px-2 py-1 text-fg/60 hover:bg-muted">Reject</button>
+                  <button onClick={() => moderate(p.id, "approve")} className="rounded-md bg-accent px-2 py-1 text-white">Approve</button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
       <section>
         <h1 className="mb-4 text-2xl font-semibold">Usage</h1>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">

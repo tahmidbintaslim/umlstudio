@@ -25,8 +25,21 @@ export async function PUT(req: Request, ctx: RouteContext<"/api/diagrams/[id]">)
   const body = await parse(req);
   if (!body) return Response.json({ error: "Invalid body" }, { status: 400 });
   const rows = await g.sql`
-    update diagrams set title = ${body.title}, source = ${body.source}, updated_at = now()
+    update diagrams set title = ${body.title}, source = ${body.source}, updated_at = now(),
+      status = case when status is null then null else 'pending' end
     where id = ${g.id} and user_id = ${g.userId} returning id`;
+  return rows.length ? Response.json(rows[0]) : Response.json({ error: "Not found" }, { status: 404 });
+}
+
+// Publish to the community gallery (queued for admin review) or withdraw.
+export async function PATCH(req: Request, ctx: RouteContext<"/api/diagrams/[id]">) {
+  const g = await guard(ctx);
+  if (g.err) return g.err;
+  const b = await req.json().catch(() => null);
+  if (typeof b?.publish !== "boolean") return Response.json({ error: "Invalid body" }, { status: 400 });
+  const rows = await g.sql`
+    update diagrams set status = ${b.publish ? "pending" : null}, published_at = ${b.publish ? new Date() : null}
+    where id = ${g.id} and user_id = ${g.userId} and source not like '{%' returning id, status`;
   return rows.length ? Response.json(rows[0]) : Response.json({ error: "Not found" }, { status: 404 });
 }
 

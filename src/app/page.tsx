@@ -10,7 +10,7 @@ import { SiteFooter, SiteHeader } from "@/components/site-chrome";
 const REPO = "https://github.com/tahmidbintaslim/umlstudio";
 
 const WAYS = [
-  { icon: Code2, title: "Write code", body: "PlantUML, Mermaid or Graphviz with live preview and 24 templates. Diagrams live in text, so they diff, review and version like code." },
+  { icon: Code2, title: "Write code", body: "PlantUML, Mermaid, Graphviz, D2 or BPMN with live preview and 27 templates. Diagrams live in text, so they diff, review and version like code." },
   { icon: PenTool, title: "Sketch freely", body: "A hand-drawn style whiteboard for brainstorming and system design. Turn any Mermaid diagram into shapes you can drag around." },
   { icon: Sparkles, title: "Describe it", body: "“ER diagram for a food-delivery app with restaurants, orders and riders.” Get a clean, editable diagram in seconds." },
   { icon: Camera, title: "Snap a photo", body: "Whiteboard after a lecture, a hand sketch, or a screenshot of an old diagram. AI redraws it as a crisp diagram you can edit." },

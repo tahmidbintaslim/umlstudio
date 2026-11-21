@@ -25,7 +25,9 @@ UML Studio puts **diagrams-as-code, AI and export in one free, open-source place
 - **Code ⇄ canvas.** Convert any Mermaid diagram into editable whiteboard shapes (powered by [Excalidraw](https://github.com/excalidraw/excalidraw)), and let AI draw straight onto the board.
 - **Cloud architecture.** Official AWS, Azure, GCP and Kubernetes icons, plus C4 models.
 - **Fix with AI.** Syntax error? One click repairs it.
-- **Two languages, one editor.** PlantUML, Mermaid and Graphviz, detected automatically, with 24 templates.
+- **Every diagram language, one editor.** PlantUML, Mermaid, Graphviz, D2 and BPMN, detected automatically, with 27 templates.
+- **Embed anywhere.** Copy a Markdown or HTML image embed for READMEs, Notion and docs; it re-renders from the code.
+- **Community gallery.** Publish a diagram, and once reviewed anyone can open it as a template.
 - **Live preview** as you type, resizable split view, zoom and fit, dark mode, mobile layout.
 - **Export** SVG, PNG, ASCII art, `.puml` / `.mmd`.
 - **Share links** that hold the whole diagram in the URL, with nothing stored server-side.
@@ -45,11 +47,12 @@ Ideas and votes welcome in [issues](https://github.com/tahmidbintaslim/umlstudio
 - [x] Graphviz/DOT and C4
 - [x] Whiteboard → code and PlantUML → whiteboard (AI)
 - [x] Diagram from a SQL schema, OpenAPI spec or source code (AI)
-- [ ] More languages: D2, BPMN
+- [x] More languages: D2, BPMN (via Kroki)
+- [x] Embeddable diagrams (Markdown/HTML image links)
+- [x] Community gallery with moderation
 - [ ] Explain-this-diagram
 - [ ] Real-time collaboration and comments
-- [ ] Public template gallery from the community
-- [ ] VS Code extension and embeddable diagrams for docs
+- [ ] VS Code extension
 
 ## Quick start
 
@@ -72,6 +75,8 @@ Open http://localhost:3000.
 | `AI_MODEL` | no | Gateway model id. Default `openai/gpt-5-mini` works on the free tier; with paid credits try `anthropic/claude-sonnet-5.5`. |
 | `DATABASE_URL` | no | Postgres for cloud save. Run [`schema.sql`](schema.sql) once. Without it, the editor, drafts and share links still work. |
 | `NEXT_PUBLIC_PLANTUML_SERVER` | no | Your own PlantUML server (default: public plantuml.com) |
+| `NEXT_PUBLIC_KROKI_SERVER` | no | Your own Kroki server for D2/BPMN (default: public kroki.io) |
+| `NEXT_PUBLIC_SENTRY_DSN` | no | Sentry DSN for error monitoring (off when empty) |
 | `NEXT_PUBLIC_GITHUB_REPO` | no | `owner/repo` for the star button |
 
 ### Self-host the renderer (optional)

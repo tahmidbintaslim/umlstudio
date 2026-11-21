@@ -12,4 +12,9 @@ assert.equal(detectKind('{"type":"excalidraw","version":2,"elements":[]}'), "exc
 assert.equal(detectKind('{\n  "type": "excalidraw"}'), "excalidraw");
 assert.equal(detectKind("@startjson\n{}\n@endjson"), "plantuml");
 assert.equal(detectKind("flowchart LR\n A-->B"), "mermaid");
+assert.equal(detectLang("# d2\nx -> y"), "d2");
+assert.equal(detectLang("direction: right\nx -> y"), "d2");
+assert.equal(detectLang('<?xml version="1.0"?>\n<bpmn:definitions xmlns:bpmn="x"></bpmn:definitions>'), "bpmn");
+assert.equal(detectLang("<definitions></definitions>"), "bpmn");
+assert.equal(detectLang("@startuml\n' # d2\n@enduml"), "plantuml");
 console.log("lang ok");

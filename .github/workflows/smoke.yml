@@ -1,0 +1,20 @@
+name: Smoke test
+# Runs the signed-out browser test against each successful production deployment. No secrets needed.
+on:
+  deployment_status:
+  workflow_dispatch:
+    inputs:
+      url: { description: "Site URL", default: "https://umlstudio.vercel.app" }
+jobs:
+  smoke:
+    if: github.event_name == 'workflow_dispatch' || (github.event.deployment_status.state == 'success' && github.event.deployment.environment == 'Production')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      # Per-deployment URLs sit behind Vercel deployment protection, so test the public domain.
+      - run: node e2e/smoke.mjs "$URL"
+        env: { URL: "${{ github.event.inputs.url || 'https://umlstudio.vercel.app' }}" }

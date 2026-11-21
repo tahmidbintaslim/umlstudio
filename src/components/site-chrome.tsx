@@ -15,6 +15,7 @@ export function SiteHeader() {
         <div className="hidden items-center gap-5 text-sm text-fg/70 md:flex">
           <Link href="/diagrams" className="hover:text-fg">Diagram types</Link>
           <Link href="/board" className="hover:text-fg">Whiteboard</Link>
+          <Link href="/gallery" className="hover:text-fg">Gallery</Link>
           <Link href="/#compare" className="hover:text-fg">Compare</Link>
           <a href={REPO} className="hover:text-fg">GitHub</a>
         </div>
@@ -39,6 +40,7 @@ export function SiteFooter() {
           <Link href="/app" className="hover:text-fg">Editor</Link>
           <Link href="/board" className="hover:text-fg">Whiteboard</Link>
           <Link href="/diagrams" className="hover:text-fg">Diagram types</Link>
+          <Link href="/gallery" className="hover:text-fg">Gallery</Link>
           <a href={REPO} className="hover:text-fg">GitHub</a>
           <a href={`${REPO}/issues/new/choose`} className="hover:text-fg">Feedback</a>
         </div>

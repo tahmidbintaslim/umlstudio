@@ -17,6 +17,7 @@ import { EXAMPLES } from "@/lib/examples";
 import { decodeUml, encodeUml, renderUrl, type Format } from "@/lib/plantuml";
 import { detectKind, detectLang } from "@/lib/lang";
 import { renderMermaid, svgToPng } from "@/lib/mermaid";
+import { krokiUrl, renderKroki } from "@/lib/kroki";
 import { GithubStar } from "./github-star";
 import { LogoMark } from "./logo";
 import { AiPanel, askAi } from "./ai-panel";
@@ -24,13 +25,16 @@ import { AiPanel, askAi } from "./ai-panel";
 const DRAFT_KEY = "umlstudio:draft";
 const isCloud = (src: string) => src.includes("!include <");
 const isDot = (src: string) => src.startsWith("@startdot");
+const LANG_NAME = { plantuml: "PlantUML", mermaid: "Mermaid", d2: "D2", bpmn: "BPMN" } as const;
+const SOURCE_EXT = { plantuml: "puml", mermaid: "mmd", d2: "d2", bpmn: "bpmn" } as const;
 const TEMPLATE_GROUPS: [string, (src: string) => boolean][] = [
   ["UML (PlantUML)", (src) => detectLang(src) === "plantuml" && !isCloud(src) && !isDot(src)],
   ["Cloud & architecture", isCloud],
   ["Graphviz", isDot],
   ["Mermaid", (src) => detectLang(src) === "mermaid"],
+  ["D2 & BPMN", (src) => ["d2", "bpmn"].includes(detectLang(src))],
 ];
-type Saved = { id: string; title: string; source: string; updated_at: string };
+type Saved = { id: string; title: string; source: string; updated_at: string; status?: "pending" | "approved" | null };
 
 export function EditorApp() {
   const { isSignedIn } = useAuth();
@@ -82,9 +86,10 @@ export function EditorApp() {
     const t = setTimeout(async () => {
       setLoading(true);
       try {
-        if (lang === "mermaid") {
+        // Mermaid renders in the browser, D2/BPMN on Kroki; both yield an SVG string kept for export.
+        if (lang !== "plantuml") {
           try {
-            const svg = await renderMermaid(source);
+            const svg = lang === "mermaid" ? await renderMermaid(source) : await renderKroki(lang, source, ctrl.signal);
             if (ctrl.signal.aborted) return;
             const url = URL.createObjectURL(new Blob([svg], { type: "image/svg+xml" }));
             setPreview((p) => { if (p?.url) URL.revokeObjectURL(p.url); return { url, svg, error: false }; });
@@ -119,9 +124,9 @@ export function EditorApp() {
   const download = async (kind: Format | "source") => {
     if (source === null) return;
     const name = (title || "diagram").replace(/[^\w-]+/g, "_");
-    const ext = kind === "source" ? (lang === "mermaid" ? "mmd" : "puml") : kind;
+    const ext = kind === "source" ? SOURCE_EXT[lang] : kind;
     const blob = kind === "source" ? new Blob([source], { type: "text/plain" })
-      : lang === "mermaid"
+      : lang !== "plantuml"
         ? (preview?.svg ? (kind === "png" ? await svgToPng(preview.svg) : new Blob([preview.svg], { type: "image/svg+xml" })) : null)
         : await fetch(renderUrl(source, kind)).then((r) => r.blob()).catch(() => null);
     if (!blob) return toast.error("Download failed");
@@ -138,6 +143,19 @@ export function EditorApp() {
     history.replaceState(null, "", url);
     await navigator.clipboard.writeText(url);
     toast.success("Share link copied");
+  };
+
+  // Embeds: a live image URL for Markdown/HTML (GitHub, Notion, docs). Mermaid gets a code block, which GitHub renders natively.
+  const copyEmbed = async (html: boolean) => {
+    if (source === null) return;
+    if (lang === "mermaid") {
+      await navigator.clipboard.writeText("```mermaid\n" + source.trim() + "\n```");
+      return void toast.success("Mermaid block copied", { description: "GitHub, GitLab and Notion render it natively." });
+    }
+    const img = lang === "plantuml" ? renderUrl(source, "svg") : await krokiUrl(lang, source);
+    const alt = (title || "diagram").replace(/["\]\[]/g, "");
+    await navigator.clipboard.writeText(html ? `<img src="${img}" alt="${alt}">` : `![${alt}](${img})`);
+    toast.success(html ? "HTML embed copied" : "Markdown embed copied");
   };
 
   const save = useCallback(async () => {
@@ -187,12 +205,12 @@ export function EditorApp() {
   const [toBoard, setToBoard] = useState(false);
   const openInWhiteboard = async () => {
     let code = source ?? "";
-    if (lang === "plantuml") {
+    if (lang !== "mermaid") {
       if (!isSignedIn) return setAiOpen(true);
       setToBoard(true);
       try {
         code = await askAi({ mode: "edit", lang: "mermaid", source: code,
-          prompt: "Convert this PlantUML diagram to the equivalent Mermaid diagram. Prefer flowchart, sequenceDiagram or classDiagram so it can become editable shapes. Return only Mermaid." });
+          prompt: `Convert this ${LANG_NAME[lang]} diagram to the equivalent Mermaid diagram. Prefer flowchart, sequenceDiagram or classDiagram so it can become editable shapes. Return only Mermaid.` });
       } catch (e) { setToBoard(false); return void toast.error((e as Error).message); }
     }
     try { sessionStorage.setItem("umlstudio:to-board", code); } catch {}
@@ -243,12 +261,16 @@ export function EditorApp() {
         </Link>
 
         <div className="ml-auto flex items-center gap-1">
-          <IconBtn label="Copy share link" onClick={share}><Link2 size={16} /></IconBtn>
+          <Menu label={<Link2 size={16} />} ariaLabel="Share" align="right">
+            <MenuItem onClick={share}>Copy share link</MenuItem>
+            <MenuItem onClick={() => copyEmbed(false)}>{lang === "mermaid" ? "Copy Mermaid block" : "Copy Markdown embed"}</MenuItem>
+            {lang !== "mermaid" && <MenuItem onClick={() => copyEmbed(true)}>Copy HTML embed</MenuItem>}
+          </Menu>
           <Menu label={<Download size={16} />} ariaLabel="Download" align="right">
             <MenuItem onClick={() => download("svg")}>SVG image</MenuItem>
             <MenuItem onClick={() => download("png")}>PNG image</MenuItem>
             {lang === "plantuml" && <MenuItem onClick={() => download("txt")}>ASCII art</MenuItem>}
-            <MenuItem onClick={() => download("source")}>{lang === "mermaid" ? "Mermaid source (.mmd)" : "PlantUML source (.puml)"}</MenuItem>
+            <MenuItem onClick={() => download("source")}>{`${LANG_NAME[lang]} source (.${SOURCE_EXT[lang]})`}</MenuItem>
           </Menu>
           <Show when="signed-in">
             <IconBtn label="My diagrams" onClick={() => setLibraryOpen(true)}><FolderOpen size={16} /></IconBtn>
@@ -295,7 +317,7 @@ export function EditorApp() {
         <Panel minSize="20" className="relative min-h-0">
           {/* Preview toolbar */}
           <div className="absolute inset-x-0 top-0 z-10 flex items-center gap-2 p-3">
-            <span className="rounded-md border border-line bg-bg/80 px-2 py-1 text-xs font-medium text-fg/70 backdrop-blur">{lang === "mermaid" ? "Mermaid" : "PlantUML"}</span>
+            <span className="rounded-md border border-line bg-bg/80 px-2 py-1 text-xs font-medium text-fg/70 backdrop-blur">{LANG_NAME[lang]}</span>
             {lang === "plantuml" && <div role="tablist" aria-label="Preview format" className="flex rounded-lg border border-line bg-bg/80 p-0.5 text-xs backdrop-blur">
               {(["svg", "png", "txt"] as Format[]).map((f) => (
                 <button
@@ -319,12 +341,12 @@ export function EditorApp() {
               </button>
             )}
             {!preview?.error && (
-              <button onClick={openInWhiteboard} disabled={toBoard} title={lang === "plantuml" ? "AI converts it to an editable whiteboard drawing" : "Convert to an editable whiteboard drawing"}
+              <button onClick={openInWhiteboard} disabled={toBoard} title={lang !== "mermaid" ? "AI converts it to an editable whiteboard drawing" : "Convert to an editable whiteboard drawing"}
                 className="hidden items-center gap-1 rounded-md border border-line bg-bg/80 px-2 py-1 text-xs text-fg/70 backdrop-blur hover:text-fg sm:flex">
                 {toBoard ? <Loader2 size={12} className="animate-spin" /> : <PenTool size={12} />} Edit on whiteboard
               </button>
             )}
-            {(format !== "txt" || lang === "mermaid") && (
+            {(format !== "txt" || lang !== "plantuml") && (
               <div className="ml-auto flex items-center rounded-lg border border-line bg-bg/80 backdrop-blur">
                 <IconBtn label="Zoom out" onClick={() => setZoom((z) => Math.max(0.1, z / 1.2))}><ZoomOut size={14} /></IconBtn>
                 <button onClick={() => setZoom(1)} className="w-12 text-xs tabular-nums text-fg/70 hover:text-fg" title="Reset zoom">
@@ -419,6 +441,15 @@ function Library({ onClose, onOpen, activeId, onDeleted }: {
     onDeleted(d.id);
   };
 
+  const togglePublish = async (d: Saved) => {
+    const publish = !d.status;
+    const res = await fetch(`/api/diagrams/${d.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ publish }) });
+    if (!res.ok) return toast.error("Could not update");
+    const { status } = await res.json();
+    setItems((xs) => xs?.map((x) => (x.id === d.id ? { ...x, status } : x)) ?? null);
+    toast.success(publish ? "Submitted to the gallery" : "Removed from the gallery", publish ? { description: "It appears once reviewed." } : undefined);
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex justify-end bg-black/40 backdrop-blur-sm" onClick={onClose}>
       <aside
@@ -441,6 +472,12 @@ function Library({ onClose, onOpen, activeId, onDeleted }: {
                 </span>
                 <span className="text-xs text-fg/50">{new Date(d.updated_at).toLocaleString()}</span>
               </button>
+              {detectKind(d.source) !== "excalidraw" && (
+                <button onClick={() => togglePublish(d)} title={d.status ? "Click to withdraw from the gallery" : "Share in the community gallery"}
+                  className={`rounded px-1.5 py-0.5 text-xs ${d.status ? "bg-accent/10 text-accent" : "text-fg/50 opacity-0 hover:text-fg focus:opacity-100 group-hover:opacity-100"}`}>
+                  {d.status === "approved" ? "Public" : d.status === "pending" ? "In review" : "Publish"}
+                </button>
+              )}
               <button onClick={() => remove(d)} aria-label={`Delete ${d.title}`} className="mr-2 rounded p-1.5 text-fg/40 opacity-0 hover:text-red-500 focus:opacity-100 group-hover:opacity-100">
                 <Trash2 size={14} />
               </button>

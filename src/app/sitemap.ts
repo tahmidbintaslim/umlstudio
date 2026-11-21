@@ -9,6 +9,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${BASE}/app`, priority: 0.9 },
     { url: `${BASE}/board`, priority: 0.8 },
     { url: `${BASE}/diagrams`, priority: 0.8 },
+    { url: `${BASE}/gallery`, priority: 0.6 },
     ...DIAGRAM_PAGES.map((d) => ({ url: `${BASE}/diagrams/${d.slug}`, priority: 0.7 })),
   ];
 }

@@ -8,6 +8,11 @@ create table if not exists diagrams (
 );
 create index if not exists diagrams_user_idx on diagrams (user_id, updated_at desc);
 
+-- Community gallery: owners publish (pending), an admin approves. Editing an approved diagram re-queues it.
+alter table diagrams add column if not exists status text check (status in ('pending','approved'));
+alter table diagrams add column if not exists published_at timestamptz;
+create index if not exists diagrams_gallery_idx on diagrams (status, published_at desc);
+
 -- One row per AI request: powers the per-user daily limit and the /admin stats.
 create table if not exists ai_usage (
   id         bigserial primary key,

@@ -1,10 +1,11 @@
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import { sql } from "@/lib/db";
 
+const isAdmin = async () => (await auth()).sessionClaims?.metadata?.role === "admin";
+
 // Owner-only usage stats. The proxy already enforces the Clerk admin role; checked again here.
 export async function GET() {
-  const { sessionClaims } = await auth();
-  if (sessionClaims?.metadata?.role !== "admin") return Response.json({ error: "Not found" }, { status: 404 });
+  if (!(await isAdmin())) return Response.json({ error: "Not found" }, { status: 404 });
 
   const clerk = await clerkClient();
   const [totalUsers, recent] = await Promise.all([
@@ -14,7 +15,7 @@ export async function GET() {
   const weekAgo = Date.now() - 7 * 864e5;
 
   if (!sql) return Response.json({ error: "DATABASE_URL not configured" }, { status: 503 });
-  const [[db], daily, pages, referrers, countries, devices] = await Promise.all([
+  const [[db], daily, pages, referrers, countries, devices, pending] = await Promise.all([
     sql`select
         (select count(distinct visitor)::int from page_views where created_at > now() - interval '24 hours') as visitors_24h,
         (select count(distinct visitor)::int from page_views where created_at > now() - interval '7 days') as visitors_7d,
@@ -35,6 +36,7 @@ export async function GET() {
     sql`select referrer as label, count(*)::int as n from page_views where created_at > now() - interval '7 days' and referrer is not null group by 1 order by 2 desc limit 10`,
     sql`select coalesce(country, '??') as label, count(distinct visitor)::int as n from page_views where created_at > now() - interval '7 days' group by 1 order by 2 desc limit 10`,
     sql`select device as label, count(distinct visitor)::int as n from page_views where created_at > now() - interval '7 days' group by 1 order by 2 desc`,
+    sql`select id, title, source from diagrams where status = 'pending' order by published_at limit 50`,
   ]);
 
   return Response.json({
@@ -53,6 +55,7 @@ export async function GET() {
       ["Users who used AI", db.ai_users],
     ],
     daily,
+    pending,
     lists: { "Top pages": pages, "Top referrers": referrers, Countries: countries, Devices: devices },
     users: recent.data.slice(0, 20).map((u) => ({
       id: u.id,
@@ -61,4 +64,16 @@ export async function GET() {
       lastActiveAt: u.lastActiveAt,
     })),
   });
+}
+
+// Gallery moderation: approve or reject (reject just un-publishes; the owner keeps the diagram).
+export async function POST(req: Request) {
+  if (!(await isAdmin())) return Response.json({ error: "Not found" }, { status: 404 });
+  if (!sql) return Response.json({ error: "DATABASE_URL not configured" }, { status: 503 });
+  const b = await req.json().catch(() => null);
+  if (typeof b?.id !== "string" || !/^[0-9a-f-]{36}$/i.test(b.id) || !["approve", "reject"].includes(b?.action))
+    return Response.json({ error: "Invalid body" }, { status: 400 });
+  await sql`update diagrams set status = ${b.action === "approve" ? "approved" : null},
+    published_at = ${b.action === "approve" ? new Date() : null} where id = ${b.id}`;
+  return new Response(null, { status: 204 });
 }

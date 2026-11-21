@@ -372,4 +372,72 @@ digraph fsm {
   Q2 : Beta
   Q3 : Public launch`,
   },
+  {
+    name: "Architecture (D2)",
+    source: `# d2
+direction: right
+
+user: User { shape: person }
+web: Web app {
+  ui: Next.js
+  api: API routes
+  ui -> api: fetch
+}
+db: Postgres { shape: cylinder }
+ai: AI Gateway { shape: cloud }
+
+user -> web.ui: HTTPS
+web.api -> db: SQL
+web.api -> ai: prompt`,
+  },
+  {
+    name: "SQL tables (D2)",
+    source: `# d2
+users: {
+  shape: sql_table
+  id: uuid {constraint: primary_key}
+  email: text {constraint: unique}
+}
+orders: {
+  shape: sql_table
+  id: uuid {constraint: primary_key}
+  user_id: uuid {constraint: foreign_key}
+  total: numeric
+}
+orders.user_id -> users.id`,
+  },
+  {
+    name: "Order process (BPMN)",
+    source: `<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="defs" targetNamespace="https://umlstudio.vercel.app">
+  <bpmn:process id="order" isExecutable="false">
+    <bpmn:startEvent id="start" name="Order placed" />
+    <bpmn:task id="pay" name="Take payment" />
+    <bpmn:exclusiveGateway id="paid" name="Paid?" />
+    <bpmn:task id="ship" name="Ship order" />
+    <bpmn:endEvent id="done" name="Delivered" />
+    <bpmn:endEvent id="cancel" name="Cancelled" />
+    <bpmn:sequenceFlow id="f1" sourceRef="start" targetRef="pay" />
+    <bpmn:sequenceFlow id="f2" sourceRef="pay" targetRef="paid" />
+    <bpmn:sequenceFlow id="f3" name="yes" sourceRef="paid" targetRef="ship" />
+    <bpmn:sequenceFlow id="f4" name="no" sourceRef="paid" targetRef="cancel" />
+    <bpmn:sequenceFlow id="f5" sourceRef="ship" targetRef="done" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="d">
+    <bpmndi:BPMNPlane id="p" bpmnElement="order">
+      <bpmndi:BPMNShape id="s_start" bpmnElement="start"><dc:Bounds x="100" y="100" width="36" height="36" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="s_pay" bpmnElement="pay"><dc:Bounds x="190" y="78" width="100" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="s_paid" bpmnElement="paid" isMarkerVisible="true"><dc:Bounds x="345" y="93" width="50" height="50" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="s_ship" bpmnElement="ship"><dc:Bounds x="450" y="78" width="100" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="s_done" bpmnElement="done"><dc:Bounds x="610" y="100" width="36" height="36" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="s_cancel" bpmnElement="cancel"><dc:Bounds x="352" y="220" width="36" height="36" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="e1" bpmnElement="f1"><di:waypoint x="136" y="118" /><di:waypoint x="190" y="118" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="e2" bpmnElement="f2"><di:waypoint x="290" y="118" /><di:waypoint x="345" y="118" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="e3" bpmnElement="f3"><di:waypoint x="395" y="118" /><di:waypoint x="450" y="118" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="e4" bpmnElement="f4"><di:waypoint x="370" y="143" /><di:waypoint x="370" y="220" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="e5" bpmnElement="f5"><di:waypoint x="550" y="118" /><di:waypoint x="610" y="118" /></bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>`,
+  },
 ];

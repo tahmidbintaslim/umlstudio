@@ -82,7 +82,7 @@ Tags: `opensource`, `webdev`, `nextjs`, `ai`
 ## X / Twitter thread
 
 1. I built a free, open-source diagram studio: PlantUML + Mermaid + an Excalidraw whiteboard + AI, in one tab. 🧵 [demo GIF]
-2. Write code with live preview. 24 templates including AWS, Azure, GCP, K8s and C4 with official icons.
+2. Write code with live preview. 27 templates (PlantUML, Mermaid, Graphviz, D2, BPMN) including AWS, Azure, GCP, K8s and C4 with official icons.
 3. Snap a photo of a whiteboard → AI redraws it as an editable diagram. Paste a SQL schema → ER diagram.
 4. Turn any Mermaid diagram into hand-drawn shapes, and sketches back into code.
 5. MIT licensed, built with Next.js + Clerk + Postgres. Try it: umlstudio.vercel.app · ⭐ github.com/tahmidbintaslim/umlstudio

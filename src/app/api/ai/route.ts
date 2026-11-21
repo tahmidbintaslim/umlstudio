@@ -16,6 +16,8 @@ You write diagram source code. Rules:
 - PlantUML: start with @startuml (or @startmindmap/@startgantt/@startjson etc.) and end with the matching @end tag. Use only syntax the official PlantUML server renders.
 - Mermaid: start with the diagram keyword (flowchart, sequenceDiagram, classDiagram, erDiagram, stateDiagram-v2, gantt, mindmap, ...). Quote labels containing special characters.
 - Mermaid is not PlantUML: in sequenceDiagram write "participant AuthService as Auth Service" (id first, then the display name, no quotes), never "participant "Auth Service" as AuthService"; use "->>" / "-->>" arrows; no "@startuml", "skin", "skinparam" or "#color" suffixes.
+- D2: the first line must be the comment "# d2". Use D2 syntax (a -> b: label, containers with {}, shape: sql_table/cylinder/person).
+- BPMN 2.0 XML: a complete <bpmn:definitions> document including the bpmndi:BPMNDiagram section with shape bounds and edge waypoints, so it can be drawn.
 - Prefer clear names, logical grouping and a readable layout. Keep it as detailed as the input implies, never invent large unrelated parts.
 - When given an image (whiteboard photo, screenshot, hand sketch, existing diagram), faithfully reproduce its structure, labels and relationships.
 - When given source material (SQL schema, OpenAPI spec, source code), derive the diagram from it: tables/keys/relations, endpoints/flows, classes/fields/methods/relations.`;
@@ -28,7 +30,7 @@ export async function POST(req: Request) {
 
   const b: Body | null = await req.json().catch(() => null);
   const mode = b?.mode;
-  const lang = b?.lang === "mermaid" ? "Mermaid" : "PlantUML";
+  const lang = ({ mermaid: "Mermaid", d2: "D2", bpmn: "BPMN 2.0 XML" } as Record<string, string>)[b?.lang ?? ""] ?? "PlantUML";
   const prompt = typeof b?.prompt === "string" ? b.prompt.trim().slice(0, 30_000) : "";
   const source = typeof b?.source === "string" ? b.source : "";
   if (!mode || !["create", "edit", "fix"].includes(mode) || source.length > MAX_AI_SOURCE)

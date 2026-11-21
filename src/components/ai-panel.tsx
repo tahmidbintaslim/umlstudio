@@ -126,6 +126,8 @@ export function AiPanel({ signedIn, lang, source, onClose, onResult, whiteboard 
                 <select value={target} onChange={(e) => setTarget(e.target.value as Lang)} className="rounded-md border border-line bg-bg px-2 py-1">
                   <option value="plantuml">PlantUML</option>
                   <option value="mermaid">Mermaid</option>
+                  <option value="d2">D2</option>
+                  <option value="bpmn">BPMN</option>
                 </select>
               </label>
             )}
